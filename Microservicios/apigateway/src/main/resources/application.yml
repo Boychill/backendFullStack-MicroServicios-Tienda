@@ -1,0 +1,49 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: apigateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: auth-service
+          uri: lb://AUTH
+          predicates:
+            - Path=/api/auth/**
+        - id: catalogo-service
+          uri: lb://CATALOGO
+          predicates:
+            - Path=/api/productos/**
+        - id: carrito-service
+          uri: lb://CARRITO
+          predicates:
+            - Path=/api/carrito/**
+        - id: pedidos-service
+          uri: lb://PEDIDOS
+          predicates:
+            - Path=/api/pedidos/**
+        - id: perfil-service
+          uri: lb://PERFIL
+          predicates:
+            - Path=/api/perfil/**
+        - id: pagos-service
+          uri: lb://PAGOS
+          predicates:
+            - Path=/api/pagos/**
+        - id: inventario-service
+          uri: lb://INVENTARIO
+          predicates:
+            - Path=/api/inventario/**
+        - id: logistica-service
+          uri: lb://LOGISTICA
+          predicates:
+            - Path=/api/envios/**
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
