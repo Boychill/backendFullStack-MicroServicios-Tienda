@@ -1,0 +1,22 @@
+meta {
+  name: CrearProducto
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/productos
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "nombre": "Laptop Pro",
+    "precio": 1500.00
+  }
+}

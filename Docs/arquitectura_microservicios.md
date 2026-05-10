@@ -87,8 +87,20 @@ Este documento proporciona la descripción de los 10 microservicios que conforma
 **Descripción:** Sirve como única puerta de enlace para todas las aplicaciones cliente. Redirige el tráfico y actúa como primera línea de seguridad, validando que el usuario envíe un JWT válido antes de permitirle pasar a los microservicios internos.
 **Responsabilidades clave:** Validación global de Tokens (JWT Filters), enrutamiento, balanceo de carga, Cross-Origin (CORS).
 **Dependencias Maven Sugeridas:** `spring-cloud-starter-gateway`, `spring-cloud-starter-netflix-eureka-client`, `jjwt-api` (para validar tokens pre-enrutamiento).
-**Endpoints Principales:**
 - *Intercepta y valida todas las llamadas (ej. comprobando la cabecera `Authorization: Bearer <token>`). Si el token es válido, hace forward a `/api/pedidos/**`, `/api/carrito/**`, etc. Para endpoints públicos como auth/login o el catálogo de productos, se configuran perfiles de acceso público dentro del Gateway.*
+
+### 11. Servicio de Analíticas (Reportes)
+**Descripción:** Se encarga de agregar y analizar datos, en especial ventas históricas extraídas de los pedidos, brindando métricas valiosas para la toma de decisiones.
+**Responsabilidades clave:** Agrupación de ventas por fecha, cálculo de neto ganado y estadísticas gerenciales.
+**Dependencias de Spring Initializr Necesarias:** 
+Para generar el proyecto en Spring Initializr (zip), selecciona las siguientes dependencias:
+- **Spring Web** (`spring-boot-starter-web`)
+- **Eureka Discovery Client** (`spring-cloud-starter-netflix-eureka-client`)
+- **OpenFeign** (`spring-cloud-starter-openfeign`)
+- **Lombok** (`lombok`)
+
+**Endpoints Principales:**
+- `GET /api/reportes/ventas`: Devuelve un objeto con ingresos netos, cantidad de pedidos y distribución de ingresos por día.
 
 ---
 

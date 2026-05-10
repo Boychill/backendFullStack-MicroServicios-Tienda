@@ -1,0 +1,146 @@
+package tienda.api.inventario.service;
+
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import tienda.api.inventario.client.CatalogoClient;
+import tienda.api.inventario.dto.DescuentoRequest;
+import tienda.api.inventario.dto.IngresoRequest;
+import tienda.api.inventario.model.Bodega;
+import tienda.api.inventario.model.InventarioBodega;
+import tienda.api.inventario.repository.BodegaRepository;
+import tienda.api.inventario.repository.InventarioBodegaRepository;
+import tienda.api.inventario.repository.AuditoriaStockRepository;
+import tienda.api.inventario.model.AuditoriaStock;
+import tienda.api.inventario.dto.ReversionRequest;
+
+import java.util.List;
+import java.time.LocalDateTime;
+
+@Service
+public class InventarioService {
+
+    @Autowired private BodegaRepository bodegaRepository;
+    @Autowired private InventarioBodegaRepository inventarioRepository;
+    @Autowired private AuditoriaStockRepository auditoriaStockRepository;
+    @Autowired private CatalogoClient catalogoClient;
+
+    public Bodega crearBodega(Bodega bodega) {
+        return bodegaRepository.save(bodega);
+    }
+    
+    public List<Bodega> listarBodegas() {
+        return bodegaRepository.findAll();
+    }
+
+    @Transactional
+    public InventarioBodega registrarIngreso(IngresoRequest req) {
+        Bodega bodega = bodegaRepository.findById(req.getBodegaId())
+                .orElseThrow(() -> new RuntimeException("Bodega no existe"));
+
+        InventarioBodega inv = inventarioRepository.findByBodegaIdAndProductoId(req.getBodegaId(), req.getProductoId())
+            .orElseGet(() -> {
+                InventarioBodega nuevo = new InventarioBodega();
+                nuevo.setBodegaId(bodega.getId());
+                nuevo.setProductoId(req.getProductoId());
+                nuevo.setCantidadDisponible(0);
+                nuevo.setCantidadReservada(0);
+                return nuevo;
+            });
+
+        inv.setCantidadDisponible(inv.getCantidadDisponible() + req.getCantidadFisica());
+        InventarioBodega guardado = inventarioRepository.save(inv);
+        
+        // Registrar Auditoría
+        AuditoriaStock auditoria = new AuditoriaStock();
+        auditoria.setProductoId(req.getProductoId());
+        auditoria.setBodegaId(bodega.getId());
+        auditoria.setTipoMovimiento(AuditoriaStock.TipoMovimiento.INGRESO);
+        auditoria.setCantidadAfectada(req.getCantidadFisica());
+        auditoria.setFechaMovimiento(LocalDateTime.now());
+        auditoria.setMotivoReferencia("Ingreso manual a bodega");
+        auditoriaStockRepository.save(auditoria);
+
+        sincronizarCatalogo(req.getProductoId());
+        return guardado;
+    }
+
+    @Transactional
+    public String descontarStock(DescuentoRequest request) {
+        Long pId = request.getProductoId();
+        Integer cantSolicitada = request.getCantidadDescontar();
+
+        Integer totalStock = inventarioRepository.sumStockByProductoId(pId);
+        if(totalStock == null || totalStock < cantSolicitada) {
+            throw new RuntimeException("Stock Insuficiente en el ecosistema de bodegas. (Requerido: " + cantSolicitada + " | Disponible: " + (totalStock == null ? 0 : totalStock) + ")");
+        }
+
+        List<InventarioBodega> lotes = inventarioRepository.findByProductoId(pId);
+        int remanente = cantSolicitada;
+
+        for (InventarioBodega lote : lotes) {
+            if (remanente <= 0) break;
+            int disp = lote.getCantidadDisponible();
+            if (disp > 0) {
+                int restar = Math.min(disp, remanente);
+                lote.setCantidadDisponible(disp - restar);
+                inventarioRepository.save(lote);
+                remanente -= restar;
+            }
+        }
+
+        if (remanente > 0) {
+            throw new RuntimeException("Error fatal en sincronía. Las bodegas reportan falta de " + remanente + " unidades fisicas.");
+        }
+
+        // Registrar Auditoría global
+        AuditoriaStock auditoria = new AuditoriaStock();
+        auditoria.setProductoId(pId);
+        auditoria.setTipoMovimiento(AuditoriaStock.TipoMovimiento.EGRESO);
+        auditoria.setCantidadAfectada(cantSolicitada);
+        auditoria.setFechaMovimiento(LocalDateTime.now());
+        auditoria.setMotivoReferencia("Venta de orden " + request.getOrdenId());
+        auditoriaStockRepository.save(auditoria);
+
+        sincronizarCatalogo(pId);
+        return "Descuento recursivo distribuido a través de bodegas con éxito.";
+    }
+
+    @Transactional
+    public String revertirDescuento(ReversionRequest request) {
+        Long pId = request.getProductoId();
+        Integer cantDevuelta = request.getCantidad();
+
+        // Buscamos cualquier lote del producto para devolverle el stock
+        List<InventarioBodega> lotes = inventarioRepository.findByProductoId(pId);
+        if (lotes.isEmpty()) {
+            throw new RuntimeException("No se encontró ninguna bodega asociada al producto " + pId + " para devolver el stock.");
+        }
+        
+        InventarioBodega loteElegido = lotes.get(0);
+        loteElegido.setCantidadDisponible(loteElegido.getCantidadDisponible() + cantDevuelta);
+        inventarioRepository.save(loteElegido);
+
+        // Registrar Auditoría global
+        AuditoriaStock auditoria = new AuditoriaStock();
+        auditoria.setProductoId(pId);
+        auditoria.setBodegaId(loteElegido.getBodegaId());
+        auditoria.setTipoMovimiento(AuditoriaStock.TipoMovimiento.INGRESO);
+        auditoria.setCantidadAfectada(cantDevuelta);
+        auditoria.setFechaMovimiento(LocalDateTime.now());
+        auditoria.setMotivoReferencia("Reversión/Devolución de orden " + request.getOrdenId());
+        auditoriaStockRepository.save(auditoria);
+
+        sincronizarCatalogo(pId);
+        return "Descuento revertido y devuelto a bodega exitosamente.";
+    }
+
+    private void sincronizarCatalogo(Long productoId) {
+        try {
+            Integer subtotal = inventarioRepository.sumStockByProductoId(productoId);
+            catalogoClient.actualizarStockEnCatalogo(productoId, subtotal == null ? 0 : subtotal, "ROLE_ADMIN");
+        } catch (Exception e) {
+            System.err.println("Visibilidad de Catalogo Fallida (Feign): " + e.getMessage());
+        }
+    }
+}

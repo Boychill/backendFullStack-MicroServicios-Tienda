@@ -1,0 +1,27 @@
+meta {
+  name: CheckoutParcial
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/pedidos/checkout
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "numeroTarjeta": "4555888899990000",
+    "productosSeleccionados": [
+      {
+        "productoId": 1,
+        "cantidad": 1
+      }
+    ]
+  }
+}

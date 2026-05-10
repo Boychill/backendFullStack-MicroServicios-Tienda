@@ -1,0 +1,24 @@
+meta {
+  name: Devolucion
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/pedidos/1/devolucion
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  [
+    {
+      "productoId": 1,
+      "cantidad": 1
+    }
+  ]
+}

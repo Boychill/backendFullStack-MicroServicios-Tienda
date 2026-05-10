@@ -1,0 +1,15 @@
+meta {
+  name: CambiarEstadoProducto
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/api/productos/1/estado?activo=false
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

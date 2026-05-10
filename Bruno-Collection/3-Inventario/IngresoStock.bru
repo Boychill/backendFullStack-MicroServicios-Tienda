@@ -1,0 +1,23 @@
+meta {
+  name: IngresoStock
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/inventario/ingreso
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "bodegaId": 1,
+    "productoId": 1,
+    "cantidadFisica": 50
+  }
+}
