@@ -8,7 +8,7 @@ import tienda.api.carrito.event.PedidoPagadoEvent;
 import tienda.api.carrito.service.CarritoService;
 import java.util.Optional;
 import tienda.api.carrito.model.Carrito;
-import tienda.api.carrito.model.ItemCarrito;
+import tienda.api.carrito.model.CartItem;
 
 @Component
 public class PedidoPagadoConsumer {
@@ -25,20 +25,17 @@ public class PedidoPagadoConsumer {
             carritoService.vaciarCarrito(evento.getEmail());
         } else {
             // Reducir cantidades específicas
-            Optional<Carrito> optCarrito = carritoService.obtenerCarrito(evento.getEmail());
-            if (optCarrito.isPresent()) {
-                Carrito carrito = optCarrito.get();
-                for (PedidoPagadoEvent.ItemComprado itemEvt : evento.getItems()) {
-                    for (ItemCarrito ic : carrito.getItems()) {
-                        if (ic.getProductoId().equals(itemEvt.getProductoId())) {
-                            int nuevaCantidad = ic.getCantidad() - itemEvt.getCantidad();
-                            if (nuevaCantidad <= 0) {
-                                carritoService.eliminarItem(evento.getEmail(), ic.getProductoId());
-                            } else {
-                                carritoService.reducirCantidad(evento.getEmail(), ic.getProductoId(), itemEvt.getCantidad());
-                            }
-                            break;
+            Carrito carrito = carritoService.obtenerCarrito(evento.getEmail());
+            for (PedidoPagadoEvent.ItemComprado itemEvt : evento.getItems()) {
+                for (CartItem ic : carrito.getItems()) {
+                    if (ic.getProductoId().equals(itemEvt.getProductoId())) {
+                        int nuevaCantidad = ic.getCantidad() - itemEvt.getCantidad();
+                        if (nuevaCantidad <= 0) {
+                            carritoService.eliminarItem(evento.getEmail(), ic.getProductoId());
+                        } else {
+                            carritoService.reducirCantidadItem(evento.getEmail(), ic.getProductoId(), itemEvt.getCantidad());
                         }
+                        break;
                     }
                 }
             }
