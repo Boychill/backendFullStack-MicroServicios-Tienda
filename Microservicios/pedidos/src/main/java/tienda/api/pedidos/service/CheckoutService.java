@@ -27,6 +27,8 @@ public class CheckoutService {
     private InventarioClient inventarioClient;
     @Autowired
     private PedidoRepository pedidoRepository;
+    @Autowired
+    private org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
 
     public Pedido realizarCheckout(String numeroTarjeta,
             List<ItemCompra> productosSeleccionados) {
@@ -131,12 +133,19 @@ public class CheckoutService {
         }
 
         // 6. Consolidación: Limpieza Post-Compra
-        if (productosSeleccionados == null || productosSeleccionados.isEmpty()) {
-            carritoClient.vaciarCarrito(role, email);
-        } else {
-            for (ItemCompra seleccion : productosSeleccionados) {
-                carritoClient.reducirCantidadItem(seleccion.getProductoId(), seleccion.getCantidad(), role, email);
+        try {
+            List<tienda.api.pedidos.event.PedidoPagadoEvent.ItemComprado> itemsEvt = null;
+            if (productosSeleccionados != null && !productosSeleccionados.isEmpty()) {
+                itemsEvt = new ArrayList<>();
+                for (ItemCompra sel : productosSeleccionados) {
+                    itemsEvt.add(new tienda.api.pedidos.event.PedidoPagadoEvent.ItemComprado(sel.getProductoId(), sel.getCantidad()));
+                }
             }
+            tienda.api.pedidos.event.PedidoPagadoEvent event = new tienda.api.pedidos.event.PedidoPagadoEvent(email, itemsEvt);
+            rabbitTemplate.convertAndSend(tienda.api.pedidos.config.RabbitMQConfig.EXCHANGE, tienda.api.pedidos.config.RabbitMQConfig.ROUTING_KEY_CARRITO, event);
+            System.out.println("Evento PedidoPagadoEvent publicado para limpiar el carrito de: " + email);
+        } catch (Exception e) {
+            System.err.println("ADVERTENCIA: Falló la notificación de limpieza del carrito para " + email + ". La compra fue exitosa. Motivo: " + e.getMessage());
         }
 
         return pedidoRepository.save(pedido);

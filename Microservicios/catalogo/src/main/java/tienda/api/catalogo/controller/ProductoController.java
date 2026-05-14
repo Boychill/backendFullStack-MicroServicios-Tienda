@@ -29,8 +29,8 @@ public class ProductoController {
     }
 
     @PostMapping
-    public ResponseEntity<?> crearProducto(@Valid @RequestBody Producto producto) {
-        Producto nuevo = productoService.guardar(producto);
+    public ResponseEntity<?> crearProducto(@Valid @RequestBody tienda.api.catalogo.dto.ProductoRequestDto productoDto) {
+        Producto nuevo = productoService.guardar(productoDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("mensaje", "Producto creado", "productoId", nuevo.getId()));
     }
 

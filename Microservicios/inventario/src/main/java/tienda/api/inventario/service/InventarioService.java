@@ -24,6 +24,7 @@ public class InventarioService {
     @Autowired private InventarioBodegaRepository inventarioRepository;
     @Autowired private AuditoriaStockRepository auditoriaStockRepository;
     @Autowired private CatalogoClient catalogoClient;
+    @Autowired private org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
 
     public Bodega crearBodega(Bodega bodega) {
         return bodegaRepository.save(bodega);
@@ -138,9 +139,28 @@ public class InventarioService {
     private void sincronizarCatalogo(Long productoId) {
         try {
             Integer subtotal = inventarioRepository.sumStockByProductoId(productoId);
-            catalogoClient.actualizarStockEnCatalogo(productoId, subtotal == null ? 0 : subtotal, "ROLE_ADMIN");
+            tienda.api.inventario.event.StockActualizadoEvent event = new tienda.api.inventario.event.StockActualizadoEvent(productoId, subtotal == null ? 0 : subtotal);
+            rabbitTemplate.convertAndSend(tienda.api.inventario.config.RabbitMQConfig.EXCHANGE, tienda.api.inventario.config.RabbitMQConfig.ROUTING_KEY_STOCK, event);
+            System.out.println("Evento StockActualizadoEvent publicado para producto: " + productoId);
         } catch (Exception e) {
-            System.err.println("Visibilidad de Catalogo Fallida (Feign): " + e.getMessage());
+            System.err.println("Visibilidad de Catalogo Fallida (RabbitMQ): " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void desactivarProducto(Long productoId, Boolean activo) {
+        if(!activo) {
+            List<InventarioBodega> lotes = inventarioRepository.findByProductoId(productoId);
+            for(InventarioBodega lote : lotes) {
+                // Congelamos el stock moviéndolo a cantidad reservada (o simplemente reduciendo la disponible a 0)
+                // Para mantener la consistencia física, lo mejor es ponerlo a 0 disponible.
+                if(lote.getCantidadDisponible() > 0) {
+                    lote.setCantidadReservada(lote.getCantidadReservada() + lote.getCantidadDisponible());
+                    lote.setCantidadDisponible(0);
+                    inventarioRepository.save(lote);
+                }
+            }
+            sincronizarCatalogo(productoId);
         }
     }
 }

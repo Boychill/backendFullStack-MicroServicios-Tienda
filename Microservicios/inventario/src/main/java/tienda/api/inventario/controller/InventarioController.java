@@ -68,4 +68,10 @@ public class InventarioController {
     public ResponseEntity<?> verAuditoria(@PathVariable Long productoId) {
         return ResponseEntity.ok(auditoriaStockRepository.findByProductoIdOrderByFechaMovimientoDesc(productoId));
     }
+
+    @PutMapping("/productos/{id}/estado")
+    public ResponseEntity<?> estadoProducto(@PathVariable Long id, @RequestParam Boolean activo) {
+        inventarioService.desactivarProducto(id, activo);
+        return ResponseEntity.ok(Map.of("mensaje", "Estado del inventario actualizado correctamente"));
+    }
 }

@@ -42,4 +42,13 @@ public class PerfilController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @PutMapping("/direcciones/{id}")
+    public ResponseEntity<?> modificarDireccion(@PathVariable Long id, @Valid @RequestBody Direccion direccionActualizada) {
+        try {
+            return ResponseEntity.ok(perfilService.actualizarDireccion(getEmailFromToken(), id, direccionActualizada));
+        } catch(Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

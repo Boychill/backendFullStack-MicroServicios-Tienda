@@ -36,4 +36,31 @@ public class PerfilService {
         }
         direccionRepository.delete(dir);
     }
+
+    public Direccion actualizarDireccion(String email, Long id, Direccion nuevosDatos) {
+        Direccion existente = direccionRepository.findById(id).orElseThrow(() -> new RuntimeException("Dirección no encontrada"));
+        if(!existente.getUsuarioEmail().equals(email)) {
+            throw new RuntimeException("Acceso denegado a esta libreta de dirección");
+        }
+
+        existente.setAlias(nuevosDatos.getAlias());
+        existente.setDireccionEscrita(nuevosDatos.getDireccionEscrita());
+        existente.setLatitud(nuevosDatos.getLatitud());
+        existente.setLongitud(nuevosDatos.getLongitud());
+
+        if (Boolean.TRUE.equals(nuevosDatos.getEsPrincipal()) && !Boolean.TRUE.equals(existente.getEsPrincipal())) {
+            List<Direccion> actuales = direccionRepository.findByUsuarioEmail(email);
+            for(Direccion d : actuales) {
+                if(!d.getId().equals(existente.getId()) && Boolean.TRUE.equals(d.getEsPrincipal())) {
+                    d.setEsPrincipal(false);
+                    direccionRepository.save(d);
+                }
+            }
+            existente.setEsPrincipal(true);
+        } else if (Boolean.FALSE.equals(nuevosDatos.getEsPrincipal())) {
+            existente.setEsPrincipal(false);
+        }
+
+        return direccionRepository.save(existente);
+    }
 }
