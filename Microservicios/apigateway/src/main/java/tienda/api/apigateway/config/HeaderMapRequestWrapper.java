@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 import java.util.*;
 
 public class HeaderMapRequestWrapper extends HttpServletRequestWrapper {
-    private Map<String, String> headerMap = new HashMap<>();
+    private Map<String, String> headerMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     public HeaderMapRequestWrapper(HttpServletRequest request) {
         super(request);

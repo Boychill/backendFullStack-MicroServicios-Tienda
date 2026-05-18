@@ -21,9 +21,13 @@ public class RoleFilter extends OncePerRequestFilter {
         
         String role = request.getHeader("X-User-Role");
         if (role != null) {
-            SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
+            role = role.replace("[", "").replace("]", "").replace("\"", "");
+            java.util.List<SimpleGrantedAuthority> authorities = java.util.Arrays.stream(role.split(","))
+                    .map(String::trim)
+                    .map(SimpleGrantedAuthority::new)
+                    .toList();
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    "user", null, Collections.singletonList(authority));
+                    "user", null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
         filterChain.doFilter(request, response);

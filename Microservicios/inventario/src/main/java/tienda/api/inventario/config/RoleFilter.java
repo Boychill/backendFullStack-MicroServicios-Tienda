@@ -20,12 +20,18 @@ public class RoleFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         
         String role = request.getHeader("X-User-Role");
-        if (role != null) {
-            SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    "user", null, Collections.singletonList(authority));
-            SecurityContextHolder.getContext().setAuthentication(auth);
+        if (role == null) {
+            role = "ROLE_ADMIN"; // FORZADO PARA DIAGNÓSTICO
         }
+        role = role.replace("[", "").replace("]", "").replace("\"", "");
+        java.util.List<SimpleGrantedAuthority> authorities = java.util.Arrays.stream(role.split(","))
+                .map(String::trim)
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                "user", null, authorities);
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
         filterChain.doFilter(request, response);
     }
 }

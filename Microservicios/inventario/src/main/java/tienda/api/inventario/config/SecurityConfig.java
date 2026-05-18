@@ -18,6 +18,7 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
             .addFilterBefore(roleFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/inventario/descuento").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_BODEGUERO")
                 .anyRequest().hasAnyAuthority("ROLE_BODEGUERO", "ROLE_ADMIN")
             );

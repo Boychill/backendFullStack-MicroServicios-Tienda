@@ -17,7 +17,8 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
             .addFilterBefore(roleFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().hasAnyAuthority("ROLE_USER")
+                .requestMatchers("/error").permitAll()
+                .anyRequest().hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
             );
         return http.build();
     }
