@@ -56,9 +56,9 @@ public class LogisticaService {
 
     public GuiaDespacho marcarComoArmado(Long id) {
         GuiaDespacho guia = logisticaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Guia no encontrada"));
-        if (!"POR_ARMAR".equals(guia.getEstado())) {
-            throw new RuntimeException("La guia no esta en estado POR_ARMAR");
+                .orElseThrow(() -> new RuntimeException("Guia no encontrada con el ID: " + id));
+        if (!"POR_ARMAR".equals(guia.getEstado()) && !"PENDIENTE".equals(guia.getEstado())) {
+            throw new RuntimeException("La guia no esta en estado POR_ARMAR ni PENDIENTE, estado actual: " + guia.getEstado());
         }
         guia.setEstado("LISTO_PARA_CHOFER");
         guia.setFechaActualizacion(LocalDateTime.now());

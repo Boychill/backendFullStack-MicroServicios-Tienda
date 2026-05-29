@@ -31,7 +31,11 @@ public class LogisticaController {
 
     @PutMapping("/bodega/{id}/armar")
     public ResponseEntity<?> marcarComoArmado(@PathVariable Long id) {
-        return ResponseEntity.ok(logisticaService.marcarComoArmado(id));
+        try {
+            return ResponseEntity.ok(logisticaService.marcarComoArmado(id));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/pendientes")
