@@ -50,7 +50,20 @@ El cliente final solo necesita consultar el endpoint `/api/pedidos/mis-pedidos` 
 
 ---
 
-## 4. Extracción de Datos Inteligente (Reportes / Analytics)
+## 4. Sistema Proactivo de Alertas y Notificaciones
+
+El microservicio de **Notificaciones** está suscrito a los distintos tópicos de RabbitMQ para informar en tiempo real a los involucrados, sin sobrecargar los procesos síncronos:
+
+1. **Eventos de Logística (`logistica.estado.cambiado` / `logistica.ruta.asignada`):**
+   - **`LISTO_PARA_CHOFER`**: Notifica a los administradores que una orden fue empaquetada.
+   - **`EN_RUTA` / `ASIGNADO`**: Notifica al usuario final y al chofer responsable, respectivamente.
+   - **`CANCELADA`**: Detiene operaciones notificando al chofer (si estaba en trayecto) y al cliente.
+2. **Eventos de Reembolso/Devolución (`pedidos.devolucion`):**
+   - Avisa al cliente de la devolución exitosa y a los administradores sobre el ingreso (Tipo `DEVOLUCION`) de stock físico a las bodegas.
+
+---
+
+## 5. Extracción de Datos Inteligente (Reportes / Analytics)
 
 El microservicio de **Reportes** es un consumidor analítico. Está diseñado puramente para labores gerenciales (Dashboards).
 

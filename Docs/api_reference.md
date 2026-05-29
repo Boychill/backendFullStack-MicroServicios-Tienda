@@ -20,11 +20,11 @@ Esta es la documentación de los endpoints disponibles en el ecosistema, basánd
 ## 3. Inventario
 - `POST /api/inventario/bodegas`: Crea una nueva bodega física en el sistema.
 - `POST /api/inventario/ingreso`: Añade unidades físicas (stock) a un producto dentro de una bodega específica, sincronizando al instante la visibilidad en el Catálogo.
-- `GET /api/inventario/auditoria/{productoId}`: Revisa exactamente cuántas unidades hay distribuidas por cada bodega de un producto dado.
+- `GET /api/inventario/auditoria/{productoId}`: Revisa exactamente el historial de movimientos de un producto. Registra con precisión la `bodegaId` afectada y tipifica los movimientos (INGRESO, EGRESO o DEVOLUCION).
 
 ## 4. Carrito
 - `GET /api/carrito`: Ve los items actuales en tu sesión.
-- `POST /api/carrito/items`: Añade un producto a tu carrito.
+- `POST /api/carrito/items`: Añade un producto a tu carrito. *(Nota: Valida en tiempo real que exista stock físico disponible en el microservicio Catálogo. Lanza excepción si excede el stock)*.
 - `PUT /api/carrito/items/{id}/reducir`: Reduce la cantidad de un ítem.
 - `DELETE /api/carrito/items/{id}`: Saca el ítem del carrito.
 - `DELETE /api/carrito/vaciar`: Elimina todo (Esto también lo llama automáticamente `Pedidos` tras un cobro exitoso).
