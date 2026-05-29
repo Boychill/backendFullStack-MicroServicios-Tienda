@@ -21,7 +21,17 @@ public class LogisticaController {
 
     private boolean isManager() {
         return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_LOGISTICA"));
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_LOGISTICA") || a.getAuthority().equals("ROLE_BODEGUERO"));
+    }
+
+    @GetMapping("/bodega/pendientes")
+    public ResponseEntity<?> listarParaArmar() {
+        return ResponseEntity.ok(logisticaService.listarPendientes());
+    }
+
+    @PutMapping("/bodega/{id}/armar")
+    public ResponseEntity<?> marcarComoArmado(@PathVariable Long id) {
+        return ResponseEntity.ok(logisticaService.marcarComoArmado(id));
     }
 
     @GetMapping("/pendientes")

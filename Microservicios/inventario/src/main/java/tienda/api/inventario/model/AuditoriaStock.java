@@ -32,6 +32,8 @@ public class AuditoriaStock {
     private LocalDateTime fechaMovimiento;
 
     private String motivoReferencia;
+    
+    private String responsableId;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -47,4 +49,6 @@ public class AuditoriaStock {
     public void setFechaMovimiento(LocalDateTime fechaMovimiento) { this.fechaMovimiento = fechaMovimiento; }
     public String getMotivoReferencia() { return motivoReferencia; }
     public void setMotivoReferencia(String motivoReferencia) { this.motivoReferencia = motivoReferencia; }
+    public String getResponsableId() { return responsableId; }
+    public void setResponsableId(String responsableId) { this.responsableId = responsableId; }
 }

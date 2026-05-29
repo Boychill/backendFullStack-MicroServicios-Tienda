@@ -18,6 +18,7 @@ public class SecurityConfig {
             .addFilterBefore(roleFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/error").permitAll()
+                .requestMatchers("/api/logistica/bodega/**").hasAnyAuthority("ROLE_BODEGUERO", "ROLE_ADMIN", "ROLE_LOGISTICA")
                 .anyRequest().hasAnyAuthority("ROLE_ADMIN", "ROLE_CHOFER", "ROLE_LOGISTICA")
             );
         return http.build();

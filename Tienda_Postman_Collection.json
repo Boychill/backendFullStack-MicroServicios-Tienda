@@ -1,4 +1,4 @@
-{
+﻿{
   "info": {
     "name": "Tienda E-Commerce - Microservicios Completo",
     "description": "Coleccion completa con los endpoints del proyecto y flujos de usuario especializados.",
@@ -10,7 +10,8 @@
     { "key": "adminToken", "value": "", "type": "string" },
     { "key": "clienteToken", "value": "", "type": "string" },
     { "key": "choferToken", "value": "", "type": "string" },
-    { "key": "logisticaToken", "value": "", "type": "string" }
+    { "key": "logisticaToken", "value": "", "type": "string" },
+    { "key": "bodegaToken", "value": "", "type": "string" }
   ],
   "auth": {
     "type": "bearer",
@@ -153,7 +154,34 @@
       ]
     },
     {
-      "name": "5. Todos los Endpoints: AUTH & PERFIL",
+      "name": "5. Flujo Bodeguero",
+      "description": "El bodeguero ingresa stock, revisa auditorias y arma ordenes pendientes para los choferes.",
+      "item": [
+        {
+          "name": "5.1 Login Bodeguero",
+          "event": [ { "listen": "test", "script": { "exec": [ "var jsonData = pm.response.json();", "if(jsonData.token) pm.collectionVariables.set('bodegaToken', jsonData.token);" ], "type": "text/javascript" } } ],
+          "request": { "auth": { "type": "noauth" }, "method": "POST", "url": "{{baseUrl}}/api/auth/login", "body": { "mode": "raw", "raw": "{\"email\": \"bodega@tienda.com\", \"password\": \"123456\"}", "options": { "raw": { "language": "json" } } } }
+        },
+        {
+          "name": "5.2 Ingresar Stock Manual",
+          "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{bodegaToken}}", "type": "string" } ] }, "method": "POST", "url": "{{baseUrl}}/api/inventario/ingreso", "body": { "mode": "raw", "raw": "{\"bodegaId\": 1, \"productoId\": 1, \"cantidadFisica\": 10}", "options": { "raw": { "language": "json" } } } }
+        },
+        {
+          "name": "5.3 Ver Auditoria de Producto",
+          "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{bodegaToken}}", "type": "string" } ] }, "method": "GET", "url": "{{baseUrl}}/api/inventario/auditoria/1" }
+        },
+        {
+          "name": "5.4 Ver Rutas por Armar",
+          "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{bodegaToken}}", "type": "string" } ] }, "method": "GET", "url": "{{baseUrl}}/api/logistica/bodega/pendientes" }
+        },
+        {
+          "name": "5.5 Marcar Ruta Como Armada",
+          "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{bodegaToken}}", "type": "string" } ] }, "method": "PUT", "url": "{{baseUrl}}/api/logistica/bodega/1/armar" }
+        }
+      ]
+    },
+    {
+      "name": "6. AUTH & PERFIL",
       "item": [
         { "name": "Login", "request": { "method": "POST", "url": "{{baseUrl}}/api/auth/login", "body": { "mode": "raw", "raw": "{\"email\":\"cliente@tienda.com\", \"password\":\"123456\"}", "options": { "raw": { "language": "json" } } } } },
         { "name": "Count Users", "request": { "method": "GET", "url": "{{baseUrl}}/api/auth/count" } },
@@ -165,7 +193,7 @@
       ]
     },
     {
-      "name": "6. Todos los Endpoints: CATALOGO",
+      "name": "7. CATALOGO",
       "item": [
         { "name": "GET Productos", "request": { "method": "GET", "url": "{{baseUrl}}/api/productos" } },
         { "name": "GET Producto by ID", "request": { "method": "GET", "url": "{{baseUrl}}/api/productos/1" } },
@@ -175,7 +203,7 @@
       ]
     },
     {
-      "name": "7. Todos los Endpoints: INVENTARIO",
+      "name": "8. INVENTARIO",
       "item": [
         { "name": "GET Bodegas", "request": { "method": "GET", "url": "{{baseUrl}}/api/inventario/bodegas" } },
         { "name": "POST Bodega", "request": { "method": "POST", "url": "{{baseUrl}}/api/inventario/bodegas", "body": { "mode": "raw", "raw": "{\"nombre\":\"Bodega\", \"ubicacion\":\"Local\"}", "options": { "raw": { "language": "json" } } } } },
@@ -186,7 +214,7 @@
       ]
     },
     {
-      "name": "8. Todos los Endpoints: CARRITO",
+      "name": "9. CARRITO",
       "item": [
         { "name": "GET Carrito", "request": { "method": "GET", "url": "{{baseUrl}}/api/carrito" } },
         { "name": "POST Agregar Item", "request": { "method": "POST", "url": "{{baseUrl}}/api/carrito/items", "body": { "mode": "raw", "raw": "{\"productoId\":1, \"cantidad\":1}", "options": { "raw": { "language": "json" } } } } },
@@ -196,7 +224,7 @@
       ]
     },
     {
-      "name": "9. Todos los Endpoints: PEDIDOS",
+      "name": "10. PEDIDOS",
       "item": [
         { "name": "GET Todos los Pedidos", "request": { "method": "GET", "url": "{{baseUrl}}/api/pedidos" } },
         { "name": "GET Mis Pedidos", "request": { "method": "GET", "url": "{{baseUrl}}/api/pedidos/mis-pedidos" } },
@@ -205,14 +233,14 @@
       ]
     },
     {
-      "name": "10. Todos los Endpoints: PAGOS",
+      "name": "11. PAGOS",
       "item": [
         { "name": "POST Procesar", "request": { "method": "POST", "url": "{{baseUrl}}/api/pagos/procesar", "body": { "mode": "raw", "raw": "{\"pedidoId\":1, \"montoTotal\":100.0, \"numeroTarjeta\":\"1111222233334444\"}", "options": { "raw": { "language": "json" } } } } },
         { "name": "POST Reembolso", "request": { "method": "POST", "url": "{{baseUrl}}/api/pagos/reembolso/1" } }
       ]
     },
     {
-      "name": "11. Todos los Endpoints: LOGISTICA",
+      "name": "12. LOGISTICA",
       "description": "Roles: ROLE_ADMIN y ROLE_LOGISTICA pueden gestionar rutas. ROLE_CHOFER solo puede ver sus rutas y actualizar estado de las suyas.",
       "item": [
         {
@@ -258,14 +286,14 @@
       ]
     },
     {
-      "name": "12. Todos los Endpoints: NOTIFICACIONES",
+      "name": "13. NOTIFICACIONES",
       "item": [
         { "name": "GET Mis Notificaciones", "request": { "method": "GET", "url": "{{baseUrl}}/api/notificaciones" } },
         { "name": "PUT Marcar Leida", "request": { "method": "PUT", "url": "{{baseUrl}}/api/notificaciones/1/leer" } }
       ]
     },
     {
-      "name": "13. Todos los Endpoints: REPORTES",
+      "name": "14. REPORTES",
       "item": [
         { "name": "GET Reportes Ventas", "request": { "method": "GET", "url": "{{baseUrl}}/api/reportes/ventas" } }
       ]

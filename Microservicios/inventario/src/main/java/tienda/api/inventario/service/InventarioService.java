@@ -60,6 +60,7 @@ public class InventarioService {
         auditoria.setCantidadAfectada(req.getCantidadFisica());
         auditoria.setFechaMovimiento(LocalDateTime.now());
         auditoria.setMotivoReferencia("Ingreso manual a bodega");
+        auditoria.setResponsableId(getUserIdOrSystem());
         auditoriaStockRepository.save(auditoria);
 
         sincronizarCatalogo(req.getProductoId());
@@ -97,6 +98,7 @@ public class InventarioService {
             auditoria.setCantidadAfectada(cantSolicitada);
             auditoria.setFechaMovimiento(LocalDateTime.now());
             auditoria.setMotivoReferencia("Venta de orden " + ordenId);
+            auditoria.setResponsableId("SISTEMA"); // Origen de pedidos
             auditoriaStockRepository.save(auditoria);
 
             sincronizarCatalogo(pId);
@@ -126,6 +128,7 @@ public class InventarioService {
                 auditoria.setCantidadAfectada(cantDevuelta);
                 auditoria.setFechaMovimiento(LocalDateTime.now());
                 auditoria.setMotivoReferencia("Reversion asincrona de orden " + ordenId);
+                auditoria.setResponsableId("SISTEMA"); // Asincrono
                 auditoriaStockRepository.save(auditoria);
 
                 sincronizarCatalogo(pId);
@@ -167,6 +170,7 @@ public class InventarioService {
         auditoria.setCantidadAfectada(cantSolicitada);
         auditoria.setFechaMovimiento(LocalDateTime.now());
         auditoria.setMotivoReferencia("Venta de orden " + request.getOrdenId());
+        auditoria.setResponsableId(getUserIdOrSystem());
         auditoriaStockRepository.save(auditoria);
 
         sincronizarCatalogo(pId);
@@ -194,6 +198,7 @@ public class InventarioService {
         auditoria.setCantidadAfectada(cantDevuelta);
         auditoria.setFechaMovimiento(LocalDateTime.now());
         auditoria.setMotivoReferencia("Reversion/Devolucion de orden " + request.getOrdenId());
+        auditoria.setResponsableId(getUserIdOrSystem());
         auditoriaStockRepository.save(auditoria);
 
         sincronizarCatalogo(pId);
@@ -227,5 +232,15 @@ public class InventarioService {
             }
             sincronizarCatalogo(productoId);
         }
+    }
+
+    private String getUserIdOrSystem() {
+        try {
+            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getName() != null && !auth.getName().isEmpty() && !auth.getName().equals("anonymousUser")) {
+                return auth.getName();
+            }
+        } catch (Exception ignored) {}
+        return "SISTEMA";
     }
 }

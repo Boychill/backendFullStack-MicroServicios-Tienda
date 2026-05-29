@@ -40,18 +40,31 @@ public class LogisticaService {
         }
         GuiaDespacho guia = GuiaDespacho.builder()
                 .pedidoId(pedidoId)
-                .estado("PENDIENTE")
+                .estado("POR_ARMAR")
                 .fechaCreacion(LocalDateTime.now())
                 .fechaActualizacion(LocalDateTime.now())
                 .direccionCompleta(direccionCompleta)
                 .build();
         GuiaDespacho guardada = logisticaRepository.save(guia);
-        publicarEvento("logistica.estado.cambiado", pedidoId, null, "PENDIENTE");
+        publicarEvento("logistica.estado.cambiado", pedidoId, null, "POR_ARMAR");
         return guardada;
     }
 
     public List<GuiaDespacho> listarPendientes() {
-        return logisticaRepository.findByEstado("PENDIENTE");
+        return logisticaRepository.findByEstado("POR_ARMAR");
+    }
+
+    public GuiaDespacho marcarComoArmado(Long id) {
+        GuiaDespacho guia = logisticaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Guia no encontrada"));
+        if (!"POR_ARMAR".equals(guia.getEstado())) {
+            throw new RuntimeException("La guia no esta en estado POR_ARMAR");
+        }
+        guia.setEstado("LISTO_PARA_CHOFER");
+        guia.setFechaActualizacion(LocalDateTime.now());
+        GuiaDespacho guardada = logisticaRepository.save(guia);
+        publicarEvento("logistica.estado.cambiado", guia.getPedidoId(), null, "LISTO_PARA_CHOFER");
+        return guardada;
     }
 
     public GuiaDespacho asignarChofer(Long id, Long choferId) {
@@ -114,7 +127,7 @@ public class LogisticaService {
             throw new RuntimeException("No hay choferes disponibles para asignar");
         }
 
-        List<GuiaDespacho> pendientes = logisticaRepository.findByEstado("PENDIENTE");
+        List<GuiaDespacho> pendientes = logisticaRepository.findByEstado("LISTO_PARA_CHOFER");
         if (pendientes.isEmpty()) {
             return; // No hay nada que asignar
         }
