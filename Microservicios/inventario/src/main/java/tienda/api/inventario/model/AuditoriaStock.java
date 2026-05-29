@@ -9,7 +9,8 @@ public class AuditoriaStock {
     
     public enum TipoMovimiento {
         INGRESO,
-        EGRESO
+        EGRESO,
+        DEVOLUCION
     }
 
     @Id

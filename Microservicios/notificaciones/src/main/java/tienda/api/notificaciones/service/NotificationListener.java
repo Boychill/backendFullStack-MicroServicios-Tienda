@@ -60,6 +60,15 @@ public class NotificationListener {
                 } else if (estado.equals("ENTREGADO")) {
                     notificacionService.crearNotificacion(-1L, "ROLE_ADMIN", "ENTREGA_COMPLETADA", "El pedido #" + pedidoId + " fue entregado con éxito por " + choferId);
                     notificacionService.crearNotificacion(clienteId, "ROLE_USER", "PEDIDO_ENTREGADO", "¡Tu pedido #" + pedidoId + " ha sido entregado exitosamente!");
+                } else if (estado.equals("EN_RUTA")) {
+                    notificacionService.crearNotificacion(clienteId, "ROLE_USER", "PEDIDO_EN_RUTA", "Tu pedido #" + pedidoId + " ya va en camino hacia tu domicilio.");
+                } else if (estado.equals("CANCELADA")) {
+                    if (choferId != -1L) {
+                        notificacionService.crearNotificacion(choferId, "ROLE_CHOFER", "RUTA_CANCELADA", "La ruta para el pedido #" + pedidoId + " ha sido cancelada.");
+                    }
+                    notificacionService.crearNotificacion(clienteId, "ROLE_USER", "PEDIDO_CANCELADO", "Lo sentimos, el envío de tu pedido #" + pedidoId + " ha sido cancelado.");
+                } else if (estado.equals("LISTO_PARA_CHOFER")) {
+                    notificacionService.crearNotificacion(-1L, "ROLE_ADMIN", "LOGISTICA_LISTA", "El pedido #" + pedidoId + " ya está armado y listo para asignarse a un chofer.");
                 }
             
             } else if (routingKey.equals("logistica.ruta.asignada")) {

@@ -38,6 +38,9 @@ public class CarritoService {
         if (activoObj != null && !Boolean.parseBoolean(activoObj.toString())) {
             throw new RuntimeException("El producto seleccionado no esta activo y no puede ser comprado.");
         }
+        
+        Object stockObj = producto.get("stock");
+        int stockDisponible = stockObj != null ? Integer.parseInt(stockObj.toString()) : 0;
 
         BigDecimal precioReal = new BigDecimal(producto.get("precio").toString());
 
@@ -46,6 +49,11 @@ public class CarritoService {
         Optional<CartItem> itemOpt = carrito.getItems().stream()
                 .filter(i -> i.getProductoId().equals(productoId))
                 .findFirst();
+                
+        int cantidadActual = itemOpt.isPresent() ? itemOpt.get().getCantidad() : 0;
+        if (cantidadActual + cantidad > stockDisponible) {
+            throw new RuntimeException("No hay stock suficiente para agregar esta cantidad al carrito. Stock disponible: " + stockDisponible);
+        }
                 
         if (itemOpt.isPresent()) {
             CartItem item = itemOpt.get();

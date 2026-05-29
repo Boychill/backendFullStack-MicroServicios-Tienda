@@ -89,17 +89,18 @@ public class InventarioService {
                     lote.setCantidadDisponible(disp - restar);
                     inventarioRepository.save(lote);
                     remanente -= restar;
+
+                    AuditoriaStock auditoria = new AuditoriaStock();
+                    auditoria.setProductoId(pId);
+                    auditoria.setBodegaId(lote.getBodegaId());
+                    auditoria.setTipoMovimiento(AuditoriaStock.TipoMovimiento.EGRESO);
+                    auditoria.setCantidadAfectada(restar);
+                    auditoria.setFechaMovimiento(LocalDateTime.now());
+                    auditoria.setMotivoReferencia("Venta de orden " + ordenId);
+                    auditoria.setResponsableId("SISTEMA"); // Origen de pedidos
+                    auditoriaStockRepository.save(auditoria);
                 }
             }
-
-            AuditoriaStock auditoria = new AuditoriaStock();
-            auditoria.setProductoId(pId);
-            auditoria.setTipoMovimiento(AuditoriaStock.TipoMovimiento.EGRESO);
-            auditoria.setCantidadAfectada(cantSolicitada);
-            auditoria.setFechaMovimiento(LocalDateTime.now());
-            auditoria.setMotivoReferencia("Venta de orden " + ordenId);
-            auditoria.setResponsableId("SISTEMA"); // Origen de pedidos
-            auditoriaStockRepository.save(auditoria);
 
             sincronizarCatalogo(pId);
         }
@@ -124,7 +125,7 @@ public class InventarioService {
                 AuditoriaStock auditoria = new AuditoriaStock();
                 auditoria.setProductoId(pId);
                 auditoria.setBodegaId(loteElegido.getBodegaId());
-                auditoria.setTipoMovimiento(AuditoriaStock.TipoMovimiento.INGRESO);
+                auditoria.setTipoMovimiento(AuditoriaStock.TipoMovimiento.DEVOLUCION);
                 auditoria.setCantidadAfectada(cantDevuelta);
                 auditoria.setFechaMovimiento(LocalDateTime.now());
                 auditoria.setMotivoReferencia("Reversion asincrona de orden " + ordenId);
@@ -157,21 +158,22 @@ public class InventarioService {
                 lote.setCantidadDisponible(disp - restar);
                 inventarioRepository.save(lote);
                 remanente -= restar;
+
+                AuditoriaStock auditoria = new AuditoriaStock();
+                auditoria.setProductoId(pId);
+                auditoria.setBodegaId(lote.getBodegaId());
+                auditoria.setTipoMovimiento(AuditoriaStock.TipoMovimiento.EGRESO);
+                auditoria.setCantidadAfectada(restar);
+                auditoria.setFechaMovimiento(LocalDateTime.now());
+                auditoria.setMotivoReferencia("Venta de orden " + request.getOrdenId());
+                auditoria.setResponsableId(getUserIdOrSystem());
+                auditoriaStockRepository.save(auditoria);
             }
         }
 
         if (remanente > 0) {
             throw new RuntimeException("Error fatal en sincronia. Las bodegas reportan falta de " + remanente + " unidades fisicas.");
         }
-
-        AuditoriaStock auditoria = new AuditoriaStock();
-        auditoria.setProductoId(pId);
-        auditoria.setTipoMovimiento(AuditoriaStock.TipoMovimiento.EGRESO);
-        auditoria.setCantidadAfectada(cantSolicitada);
-        auditoria.setFechaMovimiento(LocalDateTime.now());
-        auditoria.setMotivoReferencia("Venta de orden " + request.getOrdenId());
-        auditoria.setResponsableId(getUserIdOrSystem());
-        auditoriaStockRepository.save(auditoria);
 
         sincronizarCatalogo(pId);
         return "Descuento recursivo distribuido a traves de bodegas con exito.";
@@ -194,7 +196,7 @@ public class InventarioService {
         AuditoriaStock auditoria = new AuditoriaStock();
         auditoria.setProductoId(pId);
         auditoria.setBodegaId(loteElegido.getBodegaId());
-        auditoria.setTipoMovimiento(AuditoriaStock.TipoMovimiento.INGRESO);
+        auditoria.setTipoMovimiento(AuditoriaStock.TipoMovimiento.DEVOLUCION);
         auditoria.setCantidadAfectada(cantDevuelta);
         auditoria.setFechaMovimiento(LocalDateTime.now());
         auditoria.setMotivoReferencia("Reversion/Devolucion de orden " + request.getOrdenId());
