@@ -1,0 +1,15 @@
+meta {
+  name: Chofer-ActualizarEstado
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseUrl}}/api/logistica/chofer/rutas/1/estado?estado=ENTREGADO
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

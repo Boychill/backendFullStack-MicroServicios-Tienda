@@ -1,0 +1,24 @@
+meta {
+  name: Perfil-ModificarDireccion
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/api/perfiles/direcciones/1
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "calle": "Calle Falsa",
+    "numero": "123",
+    "ciudad": "Springfield",
+    "codigoPostal": "12345"
+  }
+}

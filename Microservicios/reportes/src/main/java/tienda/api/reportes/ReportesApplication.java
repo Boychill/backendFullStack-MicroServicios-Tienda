@@ -8,8 +8,10 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableFeignClients
 public class ReportesApplication {
 
+    public static org.springframework.context.ApplicationContext context;
+
 	public static void main(String[] args) {
-		SpringApplication.run(ReportesApplication.class, args);
+		context = SpringApplication.run(ReportesApplication.class, args);
 	}
 
 }

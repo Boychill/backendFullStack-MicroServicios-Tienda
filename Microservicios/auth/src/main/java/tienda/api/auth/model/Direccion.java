@@ -10,9 +10,8 @@ public class Direccion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "El email del usuario es requerido")
     @Column(nullable = false)
-    private String usuarioEmail;
+    private Long usuarioId;
 
     private String alias;
 
@@ -29,8 +28,8 @@ public class Direccion {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public String getUsuarioEmail() { return usuarioEmail; }
-    public void setUsuarioEmail(String usuarioEmail) { this.usuarioEmail = usuarioEmail; }
+    public Long getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
     public String getAlias() { return alias; }
     public void setAlias(String alias) { this.alias = alias; }
     public String getDireccionEscrita() { return direccionEscrita; }

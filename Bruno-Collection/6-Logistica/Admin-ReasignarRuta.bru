@@ -1,0 +1,15 @@
+meta {
+  name: Admin-ReasignarRuta
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/api/logistica/admin/rutas/1/reasignar?nuevoEmailChofer=chofer2@tienda.com
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

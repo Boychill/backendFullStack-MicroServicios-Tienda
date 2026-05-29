@@ -9,22 +9,28 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
 
 @Component
 public class RoleFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        
         String role = request.getHeader("X-User-Role");
-        String email = request.getHeader("X-User-Email");
-        if (email == null) email = "system";
+        String userId = request.getHeader("X-User-Id");
+        if (userId == null) userId = "1";
 
         if (role != null) {
-            SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
+            role = role.replace("[", "").replace("]", "").replace("\"","");
+            List<SimpleGrantedAuthority> authorities = java.util.Arrays.stream(role.split(","))
+                    .map(String::trim)
+                    .map(SimpleGrantedAuthority::new)
+                    .toList();
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    email, null, Collections.singletonList(authority));
+                    userId, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
         filterChain.doFilter(request, response);

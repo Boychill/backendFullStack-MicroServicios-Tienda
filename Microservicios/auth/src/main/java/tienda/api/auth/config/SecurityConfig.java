@@ -19,10 +19,12 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, RoleFilter roleFilter) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
+            .addFilterBefore(roleFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/perfiles/**").authenticated()
                 .anyRequest().authenticated()
             );
         return http.build();

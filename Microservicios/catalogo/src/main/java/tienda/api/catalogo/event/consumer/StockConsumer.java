@@ -14,8 +14,10 @@ public class StockConsumer {
     private ProductoService productoService;
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE_STOCK)
-    public void recibirActualizacionStock(StockActualizadoEvent evento) {
-        System.out.println("Recibido evento StockActualizadoEvent: " + evento);
-        productoService.actualizarStock(evento.getProductoId(), evento.getStock());
+    public void recibirActualizacionStock(java.util.Map<String, Object> evento) {
+        System.out.println("Recibido evento StockActualizado: " + evento);
+        Long productoId = Long.parseLong(evento.get("productoId").toString());
+        Integer stock = Integer.parseInt(evento.get("stock").toString());
+        productoService.actualizarStock(productoId, stock);
     }
 }

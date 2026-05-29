@@ -18,22 +18,22 @@ public class PedidoPagadoConsumer {
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE_CARRITO)
     public void recibirPedidoPagado(PedidoPagadoEvent evento) {
-        System.out.println("Recibido evento PedidoPagadoEvent para email: " + evento.getEmail());
+        System.out.println("Recibido evento PedidoPagadoEvent para email: " + evento.getUsuarioId());
         
         if (evento.getItems() == null || evento.getItems().isEmpty()) {
             // Vaciar todo el carrito
-            carritoService.vaciarCarrito(evento.getEmail());
+            carritoService.vaciarCarrito(evento.getUsuarioId());
         } else {
             // Reducir cantidades específicas
-            Carrito carrito = carritoService.obtenerCarrito(evento.getEmail());
+            Carrito carrito = carritoService.obtenerCarrito(evento.getUsuarioId());
             for (PedidoPagadoEvent.ItemComprado itemEvt : evento.getItems()) {
                 for (CartItem ic : carrito.getItems()) {
                     if (ic.getProductoId().equals(itemEvt.getProductoId())) {
                         int nuevaCantidad = ic.getCantidad() - itemEvt.getCantidad();
                         if (nuevaCantidad <= 0) {
-                            carritoService.eliminarItem(evento.getEmail(), ic.getProductoId());
+                            carritoService.eliminarItem(evento.getUsuarioId(), ic.getProductoId());
                         } else {
-                            carritoService.reducirCantidadItem(evento.getEmail(), ic.getProductoId(), itemEvt.getCantidad());
+                            carritoService.reducirCantidadItem(evento.getUsuarioId(), ic.getProductoId(), itemEvt.getCantidad());
                         }
                         break;
                     }

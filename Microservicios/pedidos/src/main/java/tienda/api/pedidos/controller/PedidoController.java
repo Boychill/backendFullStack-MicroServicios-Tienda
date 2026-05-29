@@ -31,13 +31,15 @@ public class PedidoController {
     @PostMapping("/checkout")
     public ResponseEntity<?> checkout(@RequestBody CheckoutRequest payload) {
         try {
-            var pedido = checkoutService.realizarCheckout(payload.getNumeroTarjeta(),
-                    payload.getProductosSeleccionados());
+            var pedido = checkoutService.realizarCheckout(payload);
             return ResponseEntity.ok(Map.of("mensaje", "Compra Exitosa", "orden", pedido));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @Autowired
+    private org.springframework.amqp.rabbit.core.RabbitTemplate rabbitTemplate;
 
     @PostMapping("/{id}/devolucion")
     public ResponseEntity<?> devolucion(@PathVariable Long id, @RequestBody List<ItemCompra> itemsADevolver) {
@@ -58,9 +60,21 @@ public class PedidoController {
             pedido.setEstado("REEMBOLSADO");
             pedidoRepository.save(pedido);
 
+            // Emitir Evento
+            try {
+                rabbitTemplate.convertAndSend(tienda.api.pedidos.config.RabbitMQConfig.EXCHANGE, "pedidos.devolucion", 
+                    Map.of("pedidoId", pedido.getId(), "email", pedido.getUsuarioId()));
+            } catch (Exception ignored) {}
+
             return ResponseEntity.ok(Map.of("mensaje", "Devolución procesada y stock retornado a bodegas con éxito"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
+    }
+
+    @GetMapping("/mis-pedidos")
+    public ResponseEntity<?> misPedidos() {
+        Long usuarioId = Long.parseLong(org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName());
+        return ResponseEntity.ok(pedidoRepository.findByUsuarioIdOrderByFechaCreacionDesc(usuarioId));
     }
 }

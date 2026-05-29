@@ -3,6 +3,9 @@ package tienda.api.pedidos.dto;
 import java.util.List;
 
 public class CheckoutRequest {
+    private Long direccionId;
+    public Long getDireccionId() { return direccionId; }
+    public void setDireccionId(Long d) { this.direccionId = d; }
     private String numeroTarjeta;
     private List<ItemCompra> productosSeleccionados;
 

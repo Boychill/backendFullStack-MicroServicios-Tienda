@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import tienda.api.auth.dto.AuthRequest;
 import tienda.api.auth.service.AuthService;
 import java.util.Map;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,5 +34,22 @@ public class AuthController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
         }
+    }
+
+    @Autowired
+    private tienda.api.auth.repository.UsuarioRepository usuarioRepository;
+
+    @GetMapping("/count")
+    public ResponseEntity<?> countUsers() {
+        return ResponseEntity.ok(Map.of("total", usuarioRepository.count()));
+    }
+
+    @GetMapping("/usuarios/choferes")
+    public ResponseEntity<List<Long>> getChoferes() {
+        List<Long> choferes = usuarioRepository.findAll().stream()
+            .filter(u -> u.getRoles().stream().anyMatch(r -> r.getNombre().equals("ROLE_CHOFER")))
+            .map(tienda.api.auth.model.Usuario::getId)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(choferes);
     }
 }

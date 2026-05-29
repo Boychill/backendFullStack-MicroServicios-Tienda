@@ -11,12 +11,12 @@ public class PerfilService {
 
     @Autowired private DireccionRepository direccionRepository;
 
-    public List<Direccion> listarMisDirecciones(String email) {
-        return direccionRepository.findByUsuarioEmail(email);
+    public List<Direccion> listarMisDirecciones(Long usuarioId) {
+        return direccionRepository.findByUsuarioId(usuarioId);
     }
 
-    public Direccion agregarDireccion(String email, Direccion nueva) {
-        List<Direccion> actuales = direccionRepository.findByUsuarioEmail(email);
+    public Direccion agregarDireccion(Long usuarioId, Direccion nueva) {
+        List<Direccion> actuales = direccionRepository.findByUsuarioId(usuarioId);
         if (actuales.isEmpty()) {
             nueva.setEsPrincipal(true);
         } else if (Boolean.TRUE.equals(nueva.getEsPrincipal())) {
@@ -25,21 +25,30 @@ public class PerfilService {
                 direccionRepository.save(d);
             }
         }
-        nueva.setUsuarioEmail(email);
+        nueva.setUsuarioId(usuarioId);
         return direccionRepository.save(nueva);
     }
 
-    public void eliminarDireccion(String email, Long id) {
+    
+    public Direccion obtenerDireccion(Long usuarioId, Long id) {
+        Direccion dir = direccionRepository.findById(id).orElseThrow(() -> new RuntimeException("Direccion no encontrada"));
+        if(!dir.getUsuarioId().equals(usuarioId)) {
+            throw new RuntimeException("Acceso denegado a esta libreta de direccion");
+        }
+        return dir;
+    }
+
+    public void eliminarDireccion(Long usuarioId, Long id) {
         Direccion dir = direccionRepository.findById(id).orElseThrow(() -> new RuntimeException("Dirección no encontrada"));
-        if(!dir.getUsuarioEmail().equals(email)) {
+        if(!dir.getUsuarioId().equals(usuarioId)) {
             throw new RuntimeException("Acceso denegado a esta libreta de dirección");
         }
         direccionRepository.delete(dir);
     }
 
-    public Direccion actualizarDireccion(String email, Long id, Direccion nuevosDatos) {
+    public Direccion actualizarDireccion(Long usuarioId, Long id, Direccion nuevosDatos) {
         Direccion existente = direccionRepository.findById(id).orElseThrow(() -> new RuntimeException("Dirección no encontrada"));
-        if(!existente.getUsuarioEmail().equals(email)) {
+        if(!existente.getUsuarioId().equals(usuarioId)) {
             throw new RuntimeException("Acceso denegado a esta libreta de dirección");
         }
 
@@ -49,7 +58,7 @@ public class PerfilService {
         existente.setLongitud(nuevosDatos.getLongitud());
 
         if (Boolean.TRUE.equals(nuevosDatos.getEsPrincipal()) && !Boolean.TRUE.equals(existente.getEsPrincipal())) {
-            List<Direccion> actuales = direccionRepository.findByUsuarioEmail(email);
+            List<Direccion> actuales = direccionRepository.findByUsuarioId(usuarioId);
             for(Direccion d : actuales) {
                 if(!d.getId().equals(existente.getId()) && Boolean.TRUE.equals(d.getEsPrincipal())) {
                     d.setEsPrincipal(false);

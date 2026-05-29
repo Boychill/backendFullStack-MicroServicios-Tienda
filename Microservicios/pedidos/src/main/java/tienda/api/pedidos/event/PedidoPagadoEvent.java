@@ -9,7 +9,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PedidoPagadoEvent {
-    private String email;
+    private Long pedidoId;
+    private Long usuarioId;
+    private String direccionCompleta;
     private List<ItemComprado> items;
 
     @Data

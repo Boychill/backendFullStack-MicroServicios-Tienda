@@ -35,6 +35,12 @@ public class AuthSeeder implements CommandLineRunner {
             Role roleUser = roleRepository.findByNombre("ROLE_USER")
                     .orElseGet(() -> roleRepository.save(Role.builder().nombre("ROLE_USER").build()));
 
+            Role roleChofer = roleRepository.findByNombre("ROLE_CHOFER")
+                    .orElseGet(() -> roleRepository.save(Role.builder().nombre("ROLE_CHOFER").build()));
+
+            Role roleLogistica = roleRepository.findByNombre("ROLE_LOGISTICA")
+                    .orElseGet(() -> roleRepository.save(Role.builder().nombre("ROLE_LOGISTICA").build()));
+
             List<Usuario> usuariosBase = List.of(
                     Usuario.builder()
                             .email("admin@tienda.com")
@@ -50,11 +56,21 @@ public class AuthSeeder implements CommandLineRunner {
                             .email("cliente@tienda.com")
                             .password(encryptedPassword)
                             .roles(List.of(roleUser))
+                            .build(),
+                    Usuario.builder()
+                            .email("chofer@tienda.com")
+                            .password(encryptedPassword)
+                            .roles(List.of(roleChofer))
+                            .build(),
+                    Usuario.builder()
+                            .email("logistica@tienda.com")
+                            .password(encryptedPassword)
+                            .roles(List.of(roleLogistica))
                             .build()
             );
 
             usuarioRepository.saveAll(usuariosBase);
-            System.out.println("====== [SEEDER] Usuarios base (Admin, Bodeguero, Cliente) inicializados con éxito. ======");
+            System.out.println("====== [SEEDER] Usuarios base (Admin, Bodeguero, Cliente, Chofer, Logistica) inicializados con éxito. ======");
         }
     }
 }

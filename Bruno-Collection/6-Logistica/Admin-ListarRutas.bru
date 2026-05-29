@@ -1,0 +1,15 @@
+meta {
+  name: Admin-ListarRutas
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/logistica/admin/rutas
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

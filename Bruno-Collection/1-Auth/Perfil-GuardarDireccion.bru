@@ -1,0 +1,24 @@
+meta {
+  name: Perfil-GuardarDireccion
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/perfiles/direccion
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "calle": "Av. Siempreviva",
+    "numero": "742",
+    "ciudad": "Springfield",
+    "codigoPostal": "00000"
+  }
+}

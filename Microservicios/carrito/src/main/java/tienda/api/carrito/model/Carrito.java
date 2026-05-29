@@ -13,9 +13,9 @@ public class Carrito {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @NotBlank(message = "El email del usuario no puede estar vacío")
+    @NotNull(message = "El ID del usuario es requerido")
     @Column(unique = true, nullable = false)
-    private String usuarioEmail;
+    private Long usuarioId;
     
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "carritoId")
     private List<CartItem> items = new ArrayList<>();
@@ -25,8 +25,8 @@ public class Carrito {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public String getUsuarioEmail() { return usuarioEmail; }
-    public void setUsuarioEmail(String usuarioEmail) { this.usuarioEmail = usuarioEmail; }
+    public Long getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
     public List<CartItem> getItems() { return items; }
     public void setItems(List<CartItem> items) { this.items = items; }
     public BigDecimal getTotal() { return total; }

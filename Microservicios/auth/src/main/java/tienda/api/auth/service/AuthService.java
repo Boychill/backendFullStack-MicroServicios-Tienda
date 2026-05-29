@@ -36,8 +36,9 @@ public class AuthService {
             return "Email ya registrado";
         }
 
-        Role userRole = roleRepository.findByNombre("ROLE_USER")
-                .orElseGet(() -> roleRepository.save(Role.builder().nombre("ROLE_USER").build()));
+        String requestedRole = request.getRole() != null ? request.getRole() : "ROLE_USER";
+        Role userRole = roleRepository.findByNombre(requestedRole)
+                .orElseGet(() -> roleRepository.save(Role.builder().nombre(requestedRole).build()));
 
         Usuario usuario = Usuario.builder()
                 .email(request.getEmail())
@@ -57,7 +58,7 @@ public class AuthService {
                         .map(Role::getNombre)
                         .collect(Collectors.toList());
 
-                String token = jwtProvider.createToken(usuario.getEmail(), rolesStr);
+                String token = jwtProvider.createToken(usuario, rolesStr);
 
                 List<RoleDto> rolesDto = usuario.getRoles().stream()
                         .map(r -> new RoleDto(r.getNombre()))

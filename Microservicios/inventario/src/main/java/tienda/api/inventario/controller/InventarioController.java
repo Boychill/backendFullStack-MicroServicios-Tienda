@@ -35,7 +35,7 @@ public class InventarioController {
     public ResponseEntity<?> agregarInventario(@Valid @RequestBody IngresoRequest request) {
         try {
             inventarioService.registrarIngreso(request);
-            return ResponseEntity.ok(Map.of("mensaje", "Inventario físico asignado a bodega exitosamente"));
+            return ResponseEntity.ok(Map.of("mensaje", "Inventario f??sico asignado a bodega exitosamente"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
         }
@@ -45,6 +45,18 @@ public class InventarioController {
     public ResponseEntity<?> aplicarDescuento(@Valid @RequestBody DescuentoRequest request) {
         try {
             String msj = inventarioService.descontarStock(request);
+            return ResponseEntity.ok(Map.of("mensaje", msj));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/descuento-lote")
+    public ResponseEntity<?> aplicarDescuentoLote(@RequestBody Map<String, Object> request) {
+        try {
+            java.util.List<Map<String, Object>> items = (java.util.List<Map<String, Object>>) request.get("items");
+            Long ordenId = Long.parseLong(request.get("ordenId").toString());
+            String msj = inventarioService.descontarStockLote(items, ordenId);
             return ResponseEntity.ok(Map.of("mensaje", msj));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
@@ -75,3 +87,5 @@ public class InventarioController {
         return ResponseEntity.ok(Map.of("mensaje", "Estado del inventario actualizado correctamente"));
     }
 }
+
+

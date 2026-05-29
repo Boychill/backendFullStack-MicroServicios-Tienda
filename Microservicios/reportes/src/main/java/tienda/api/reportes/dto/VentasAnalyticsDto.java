@@ -13,4 +13,6 @@ public class VentasAnalyticsDto {
     private int totalPedidos;
     private BigDecimal ingresoNeto;
     private Map<String, BigDecimal> ventasPorFecha;
+    private Long productoMasVendidoId;
+    private Long totalUsuariosRegistrados;
 }

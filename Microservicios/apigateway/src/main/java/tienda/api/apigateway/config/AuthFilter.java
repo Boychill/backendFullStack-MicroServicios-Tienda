@@ -61,6 +61,10 @@ public class AuthFilter extends OncePerRequestFilter {
                 if(email != null) {
                     wrapper.addHeader("X-User-Email", email);
                 }
+                Integer userId = claims.get("userId", Integer.class);
+                if (userId != null) {
+                    wrapper.addHeader("X-User-Id", String.valueOf(userId));
+                }
 
                 filterChain.doFilter(wrapper, response);
                 return;

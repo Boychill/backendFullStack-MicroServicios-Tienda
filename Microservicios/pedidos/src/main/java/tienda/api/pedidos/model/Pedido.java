@@ -12,8 +12,8 @@ public class Pedido {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotBlank(message = "El email del usuario es requerido")
-    private String usuarioEmail;
+    @NotNull(message = "El ID del usuario es requerido")
+    private Long usuarioId;
     
     @NotNull(message = "El total del pedido no puede ser nulo")
     @DecimalMin(value = "0.0", inclusive = false, message = "El total debe ser mayor a cero")
@@ -23,17 +23,25 @@ public class Pedido {
     private String estado; 
     private String transaccionId;
     private LocalDateTime fechaCreacion;
+    private String direccionCompleta;
+
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private java.util.List<ItemPedido> items = new java.util.ArrayList<>();
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public String getUsuarioEmail() { return usuarioEmail; }
-    public void setUsuarioEmail(String usuarioEmail) { this.usuarioEmail = usuarioEmail; }
+    public Long getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
     public BigDecimal getTotal() { return total; }
     public void setTotal(BigDecimal total) { this.total = total; }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
     public String getTransaccionId() { return transaccionId; }
     public void setTransaccionId(String transaccionId) { this.transaccionId = transaccionId; }
+    public String getDireccionCompleta() { return direccionCompleta; }
+    public void setDireccionCompleta(String direccionCompleta) { this.direccionCompleta = direccionCompleta; }
     public LocalDateTime getFechaCreacion() { return fechaCreacion; }
     public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
+    public java.util.List<ItemPedido> getItems() { return items; }
+    public void setItems(java.util.List<ItemPedido> items) { this.items = items; }
 }

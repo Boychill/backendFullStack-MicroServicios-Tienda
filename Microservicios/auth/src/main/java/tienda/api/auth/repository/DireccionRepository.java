@@ -5,5 +5,5 @@ import tienda.api.auth.model.Direccion;
 import java.util.List;
 
 public interface DireccionRepository extends JpaRepository<Direccion, Long> {
-    List<Direccion> findByUsuarioEmail(String email);
+    List<Direccion> findByUsuarioId(Long usuarioId);
 }

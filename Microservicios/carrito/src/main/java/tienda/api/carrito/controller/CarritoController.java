@@ -16,41 +16,41 @@ public class CarritoController {
     @Autowired
     private CarritoService carritoService;
     
-    private String getEmailFromToken() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
+    private Long getUserIdFromToken() {
+        return Long.parseLong(SecurityContextHolder.getContext().getAuthentication().getName());
     }
 
     @GetMapping
     public ResponseEntity<?> verCarrito() {
-        String email = getEmailFromToken();
-        return ResponseEntity.ok(carritoService.obtenerCarrito(email));
+        Long usuarioId = getUserIdFromToken();
+        return ResponseEntity.ok(carritoService.obtenerCarrito(usuarioId));
     }
 
     @PostMapping("/items")
     public ResponseEntity<?> agregarItem(@Valid @RequestBody AgregarItemRequest request) {
-        String email = getEmailFromToken();
-        var carrito = carritoService.agregarItem(email, request.getProductoId(), request.getCantidad(), request.getPrecio());
+        Long usuarioId = getUserIdFromToken();
+        var carrito = carritoService.agregarItem(usuarioId, request.getProductoId(), request.getCantidad());
         return ResponseEntity.ok(carrito);
     }
 
     @DeleteMapping("/vaciar")
     public ResponseEntity<?> vaciarCarrito() {
-        String email = getEmailFromToken();
-        carritoService.vaciarCarrito(email);
+        Long usuarioId = getUserIdFromToken();
+        carritoService.vaciarCarrito(usuarioId);
         return ResponseEntity.ok(Map.of("mensaje", "Carrito vaciado"));
     }
 
     @PutMapping("/items/{productoId}/reducir")
     public ResponseEntity<?> reducirCantidad(@PathVariable Long productoId, @RequestParam Integer cantidad) {
-        String email = getEmailFromToken();
-        var carrito = carritoService.reducirCantidadItem(email, productoId, cantidad);
+        Long usuarioId = getUserIdFromToken();
+        var carrito = carritoService.reducirCantidadItem(usuarioId, productoId, cantidad);
         return ResponseEntity.ok(carrito);
     }
 
     @DeleteMapping("/items/{productoId}")
     public ResponseEntity<?> eliminarItem(@PathVariable Long productoId) {
-        String email = getEmailFromToken();
-        var carrito = carritoService.eliminarItem(email, productoId);
+        Long usuarioId = getUserIdFromToken();
+        var carrito = carritoService.eliminarItem(usuarioId, productoId);
         return ResponseEntity.ok(carrito);
     }
 }

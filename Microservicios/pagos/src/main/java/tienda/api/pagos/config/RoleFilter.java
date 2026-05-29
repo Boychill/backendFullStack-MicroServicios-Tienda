@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
 
 @Component
 public class RoleFilter extends OncePerRequestFilter {
@@ -20,14 +20,17 @@ public class RoleFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         
         String role = request.getHeader("X-User-Role");
+        String userId = request.getHeader("X-User-Id");
+        if (userId == null) userId = "1";
+
         if (role != null) {
-            role = role.replace("[", "").replace("]", "").replace("\"", "");
-            java.util.List<SimpleGrantedAuthority> authorities = java.util.Arrays.stream(role.split(","))
+            role = role.replace("[", "").replace("]", "").replace("\"","");
+            List<SimpleGrantedAuthority> authorities = java.util.Arrays.stream(role.split(","))
                     .map(String::trim)
                     .map(SimpleGrantedAuthority::new)
                     .toList();
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    "user", null, authorities);
+                    userId, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
         filterChain.doFilter(request, response);

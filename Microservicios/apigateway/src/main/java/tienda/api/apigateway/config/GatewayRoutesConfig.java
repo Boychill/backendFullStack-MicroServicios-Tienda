@@ -42,6 +42,18 @@ public class GatewayRoutesConfig {
             .and(route("perfil-service")
                 .route(RequestPredicates.path("/api/perfiles/**"), http())
                 .filter(lb("AUTH"))
+                .build())
+            .and(route("logistica-service")
+                .route(RequestPredicates.path("/api/logistica/**"), http())
+                .filter(lb("LOGISTICA"))
+                .build())
+            .and(route("notificaciones-service")
+                .route(RequestPredicates.path("/api/notificaciones/**"), http())
+                .filter(lb("NOTIFICACIONES"))
+                .build())
+            .and(route("reportes-service")
+                .route(RequestPredicates.path("/api/reportes/**"), http())
+                .filter(lb("REPORTES"))
                 .build());
 
     }

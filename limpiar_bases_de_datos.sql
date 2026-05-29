@@ -1,0 +1,20 @@
+DROP DATABASE IF EXISTS tienda_apigateway;
+DROP DATABASE IF EXISTS tienda_auth;
+DROP DATABASE IF EXISTS tienda_carrito;
+DROP DATABASE IF EXISTS tienda_catalogo;
+DROP DATABASE IF EXISTS tienda_inventario;
+DROP DATABASE IF EXISTS tienda_logistica;
+DROP DATABASE IF EXISTS tienda_notificaciones;
+DROP DATABASE IF EXISTS tienda_pagos;
+DROP DATABASE IF EXISTS tienda_pedidos;
+DROP DATABASE IF EXISTS tienda_reportes;
+
+CREATE DATABASE tienda_auth;
+CREATE DATABASE tienda_carrito;
+CREATE DATABASE tienda_catalogo;
+CREATE DATABASE tienda_inventario;
+CREATE DATABASE tienda_logistica;
+CREATE DATABASE tienda_notificaciones;
+CREATE DATABASE tienda_pagos;
+CREATE DATABASE tienda_pedidos;
+CREATE DATABASE tienda_reportes;

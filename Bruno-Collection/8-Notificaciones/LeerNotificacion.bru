@@ -1,0 +1,15 @@
+meta {
+  name: LeerNotificacion
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/api/notificaciones/1/leer
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

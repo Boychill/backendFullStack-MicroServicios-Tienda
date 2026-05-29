@@ -12,4 +12,6 @@ public class AuthRequest {
 
     @NotBlank(message = "El password es requerido")
     private String password;
+
+    private String role;
 }

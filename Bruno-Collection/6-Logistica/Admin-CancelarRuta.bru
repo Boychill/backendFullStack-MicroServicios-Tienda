@@ -1,0 +1,15 @@
+meta {
+  name: Admin-CancelarRuta
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/api/logistica/admin/rutas/1/cancelar
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

@@ -15,19 +15,28 @@ public class PerfilController {
 
     @Autowired private PerfilService perfilService;
 
-    private String getEmailFromToken() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
+    private Long getUserIdFromToken() {
+        return Long.parseLong(SecurityContextHolder.getContext().getAuthentication().getName());
+    }
+
+    @GetMapping("/direcciones/{id}")
+    public ResponseEntity<?> obtenerDireccion(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(perfilService.obtenerDireccion(getUserIdFromToken(), id));
+        } catch(Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/direcciones")
     public ResponseEntity<?> misDirecciones() {
-        return ResponseEntity.ok(perfilService.listarMisDirecciones(getEmailFromToken()));
+        return ResponseEntity.ok(perfilService.listarMisDirecciones(getUserIdFromToken()));
     }
 
     @PostMapping("/direccion")
     public ResponseEntity<?> guardarDireccion(@Valid @RequestBody Direccion direccion) {
         try {
-            return ResponseEntity.ok(perfilService.agregarDireccion(getEmailFromToken(), direccion));
+            return ResponseEntity.ok(perfilService.agregarDireccion(getUserIdFromToken(), direccion));
         } catch(Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -36,8 +45,8 @@ public class PerfilController {
     @DeleteMapping("/direcciones/{id}")
     public ResponseEntity<?> eliminarDireccion(@PathVariable Long id) {
         try {
-            perfilService.eliminarDireccion(getEmailFromToken(), id);
-            return ResponseEntity.ok(Map.of("mensaje", "Dirección borrada exitosamente"));
+            perfilService.eliminarDireccion(getUserIdFromToken(), id);
+            return ResponseEntity.ok(Map.of("mensaje", "Direccion borrada exitosamente"));
         } catch(Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -46,7 +55,7 @@ public class PerfilController {
     @PutMapping("/direcciones/{id}")
     public ResponseEntity<?> modificarDireccion(@PathVariable Long id, @Valid @RequestBody Direccion direccionActualizada) {
         try {
-            return ResponseEntity.ok(perfilService.actualizarDireccion(getEmailFromToken(), id, direccionActualizada));
+            return ResponseEntity.ok(perfilService.actualizarDireccion(getUserIdFromToken(), id, direccionActualizada));
         } catch(Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

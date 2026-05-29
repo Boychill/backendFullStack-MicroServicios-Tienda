@@ -12,7 +12,7 @@ public class PedidoDto {
     private Long id;
     
     @NotBlank(message = "El email del usuario es requerido")
-    private String usuarioEmail;
+    private Long usuarioId;
     
     @NotNull(message = "El total del pedido no puede ser nulo")
     @DecimalMin(value = "0.0", inclusive = false, message = "El total debe ser mayor a cero")
@@ -22,4 +22,6 @@ public class PedidoDto {
     private String estado;
     
     private LocalDateTime fechaCreacion;
+    
+    private java.util.List<ItemPedidoDto> items;
 }

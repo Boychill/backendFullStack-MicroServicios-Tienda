@@ -3,6 +3,7 @@ package tienda.api.carrito.service;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tienda.api.carrito.client.CatalogoClient;
 import tienda.api.carrito.model.Carrito;
 import tienda.api.carrito.model.CartItem;
 import tienda.api.carrito.repository.CarritoRepository;
@@ -15,17 +16,32 @@ public class CarritoService {
     @Autowired
     private CarritoRepository carritoRepository;
 
-    public Carrito obtenerCarrito(String email) {
-        return carritoRepository.findByUsuarioEmail(email).orElseGet(() -> {
+    @Autowired
+    private CatalogoClient catalogoClient;
+
+    public Carrito obtenerCarrito(Long usuarioId) {
+        return carritoRepository.findByUsuarioId(usuarioId).orElseGet(() -> {
             Carrito nuevo = new Carrito();
-            nuevo.setUsuarioEmail(email);
+            nuevo.setUsuarioId(usuarioId);
             return carritoRepository.save(nuevo);
         });
     }
 
     @Transactional
-    public Carrito agregarItem(String email, Long productoId, Integer cantidad, BigDecimal precio) {
-        Carrito carrito = obtenerCarrito(email);
+    public Carrito agregarItem(Long usuarioId, Long productoId, Integer cantidad) {
+        java.util.Map<String, Object> producto = catalogoClient.obtenerProducto(productoId);
+        if (producto == null || !producto.containsKey("precio")) {
+            throw new RuntimeException("Producto no encontrado o precio invalido");
+        }
+        
+        Object activoObj = producto.get("activo");
+        if (activoObj != null && !Boolean.parseBoolean(activoObj.toString())) {
+            throw new RuntimeException("El producto seleccionado no esta activo y no puede ser comprado.");
+        }
+
+        BigDecimal precioReal = new BigDecimal(producto.get("precio").toString());
+
+        Carrito carrito = obtenerCarrito(usuarioId);
         
         Optional<CartItem> itemOpt = carrito.getItems().stream()
                 .filter(i -> i.getProductoId().equals(productoId))
@@ -34,14 +50,15 @@ public class CarritoService {
         if (itemOpt.isPresent()) {
             CartItem item = itemOpt.get();
             item.setCantidad(item.getCantidad() + cantidad);
-            item.setSubtotal(item.getPrecioUnitario().multiply(new BigDecimal(item.getCantidad())));
+            item.setPrecioUnitario(precioReal);
+            item.setSubtotal(precioReal.multiply(new BigDecimal(item.getCantidad())));
         } else {
             CartItem nuevoItem = new CartItem();
             nuevoItem.setCarritoId(carrito.getId());
             nuevoItem.setProductoId(productoId);
             nuevoItem.setCantidad(cantidad);
-            nuevoItem.setPrecioUnitario(precio);
-            nuevoItem.setSubtotal(precio.multiply(new BigDecimal(cantidad)));
+            nuevoItem.setPrecioUnitario(precioReal);
+            nuevoItem.setSubtotal(precioReal.multiply(new BigDecimal(cantidad)));
             carrito.getItems().add(nuevoItem);
         }
         
@@ -50,16 +67,16 @@ public class CarritoService {
     }
     
     @Transactional
-    public void vaciarCarrito(String email) {
-        Carrito carrito = obtenerCarrito(email);
+    public void vaciarCarrito(Long usuarioId) {
+        Carrito carrito = obtenerCarrito(usuarioId);
         carrito.getItems().clear();
         carrito.setTotal(BigDecimal.ZERO);
         carritoRepository.save(carrito);
     }
 
     @Transactional
-    public Carrito reducirCantidadItem(String email, Long productoId, Integer cantidadAQuitar) {
-        Carrito carrito = obtenerCarrito(email);
+    public Carrito reducirCantidadItem(Long usuarioId, Long productoId, Integer cantidadAQuitar) {
+        Carrito carrito = obtenerCarrito(usuarioId);
         
         Optional<CartItem> itemOpt = carrito.getItems().stream()
                 .filter(i -> i.getProductoId().equals(productoId))
@@ -82,8 +99,8 @@ public class CarritoService {
     }
 
     @Transactional
-    public Carrito eliminarItem(String email, Long productoId) {
-        Carrito carrito = obtenerCarrito(email);
+    public Carrito eliminarItem(Long usuarioId, Long productoId) {
+        Carrito carrito = obtenerCarrito(usuarioId);
         
         boolean eliminado = carrito.getItems().removeIf(i -> i.getProductoId().equals(productoId));
         if (eliminado) {
@@ -100,3 +117,4 @@ public class CarritoService {
         carrito.setTotal(total);
     }
 }
+

@@ -38,6 +38,16 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue compensacionStockQueue() {
+        return new Queue("pedidos.compensacion.stock.queue", true);
+    }
+
+    @Bean
+    public Binding compensacionStockBinding() {
+        return BindingBuilder.bind(compensacionStockQueue()).to(exchange()).with("pedidos.compensacion.stock");
+    }
+
+    @Bean
     public Binding estadoBinding() {
         return BindingBuilder.bind(estadoQueue()).to(exchange()).with(ROUTING_KEY_ESTADO);
     }
@@ -54,3 +64,5 @@ public class RabbitMQConfig {
         return template;
     }
 }
+
+

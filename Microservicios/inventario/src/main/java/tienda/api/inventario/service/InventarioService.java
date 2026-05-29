@@ -15,6 +15,7 @@ import tienda.api.inventario.model.AuditoriaStock;
 import tienda.api.inventario.dto.ReversionRequest;
 
 import java.util.List;
+import java.util.Map;
 import java.time.LocalDateTime;
 
 @Service
@@ -52,7 +53,6 @@ public class InventarioService {
         inv.setCantidadDisponible(inv.getCantidadDisponible() + req.getCantidadFisica());
         InventarioBodega guardado = inventarioRepository.save(inv);
         
-        // Registrar Auditoría
         AuditoriaStock auditoria = new AuditoriaStock();
         auditoria.setProductoId(req.getProductoId());
         auditoria.setBodegaId(bodega.getId());
@@ -64,6 +64,73 @@ public class InventarioService {
 
         sincronizarCatalogo(req.getProductoId());
         return guardado;
+    }
+
+    @Transactional
+    public String descontarStockLote(List<Map<String, Object>> items, Long ordenId) {
+        for (Map<String, Object> item : items) {
+            Long pId = Long.parseLong(item.get("productoId").toString());
+            Integer cantSolicitada = Integer.parseInt(item.get("cantidad").toString());
+
+            Integer totalStock = inventarioRepository.sumStockByProductoId(pId);
+            if(totalStock == null || totalStock < cantSolicitada) {
+                throw new RuntimeException("Stock Insuficiente. Requerido: " + cantSolicitada);
+            }
+
+            List<InventarioBodega> lotes = inventarioRepository.findByProductoId(pId);
+            int remanente = cantSolicitada;
+
+            for (InventarioBodega lote : lotes) {
+                if (remanente <= 0) break;
+                int disp = lote.getCantidadDisponible();
+                if (disp > 0) {
+                    int restar = Math.min(disp, remanente);
+                    lote.setCantidadDisponible(disp - restar);
+                    inventarioRepository.save(lote);
+                    remanente -= restar;
+                }
+            }
+
+            AuditoriaStock auditoria = new AuditoriaStock();
+            auditoria.setProductoId(pId);
+            auditoria.setTipoMovimiento(AuditoriaStock.TipoMovimiento.EGRESO);
+            auditoria.setCantidadAfectada(cantSolicitada);
+            auditoria.setFechaMovimiento(LocalDateTime.now());
+            auditoria.setMotivoReferencia("Venta de orden " + ordenId);
+            auditoriaStockRepository.save(auditoria);
+
+            sincronizarCatalogo(pId);
+        }
+        return "Descuento en lote procesado exitosamente.";
+    }
+
+    @Transactional
+    public void revertirLoteAsincrono(Map<String, Object> event) {
+        Long ordenId = Long.parseLong(event.get("ordenId").toString());
+        List<Map<String, Object>> items = (List<Map<String, Object>>) event.get("items");
+
+        for (Map<String, Object> item : items) {
+            Long pId = Long.parseLong(item.get("productoId").toString());
+            Integer cantDevuelta = Integer.parseInt(item.get("cantidad").toString());
+
+            List<InventarioBodega> lotes = inventarioRepository.findByProductoId(pId);
+            if (!lotes.isEmpty()) {
+                InventarioBodega loteElegido = lotes.get(0);
+                loteElegido.setCantidadDisponible(loteElegido.getCantidadDisponible() + cantDevuelta);
+                inventarioRepository.save(loteElegido);
+
+                AuditoriaStock auditoria = new AuditoriaStock();
+                auditoria.setProductoId(pId);
+                auditoria.setBodegaId(loteElegido.getBodegaId());
+                auditoria.setTipoMovimiento(AuditoriaStock.TipoMovimiento.INGRESO);
+                auditoria.setCantidadAfectada(cantDevuelta);
+                auditoria.setFechaMovimiento(LocalDateTime.now());
+                auditoria.setMotivoReferencia("Reversion asincrona de orden " + ordenId);
+                auditoriaStockRepository.save(auditoria);
+
+                sincronizarCatalogo(pId);
+            }
+        }
     }
 
     @Transactional
@@ -91,10 +158,9 @@ public class InventarioService {
         }
 
         if (remanente > 0) {
-            throw new RuntimeException("Error fatal en sincronía. Las bodegas reportan falta de " + remanente + " unidades fisicas.");
+            throw new RuntimeException("Error fatal en sincronia. Las bodegas reportan falta de " + remanente + " unidades fisicas.");
         }
 
-        // Registrar Auditoría global
         AuditoriaStock auditoria = new AuditoriaStock();
         auditoria.setProductoId(pId);
         auditoria.setTipoMovimiento(AuditoriaStock.TipoMovimiento.EGRESO);
@@ -104,7 +170,7 @@ public class InventarioService {
         auditoriaStockRepository.save(auditoria);
 
         sincronizarCatalogo(pId);
-        return "Descuento recursivo distribuido a través de bodegas con éxito.";
+        return "Descuento recursivo distribuido a traves de bodegas con exito.";
     }
 
     @Transactional
@@ -112,24 +178,22 @@ public class InventarioService {
         Long pId = request.getProductoId();
         Integer cantDevuelta = request.getCantidad();
 
-        // Buscamos cualquier lote del producto para devolverle el stock
         List<InventarioBodega> lotes = inventarioRepository.findByProductoId(pId);
         if (lotes.isEmpty()) {
-            throw new RuntimeException("No se encontró ninguna bodega asociada al producto " + pId + " para devolver el stock.");
+            throw new RuntimeException("No se encontro ninguna bodega asociada al producto " + pId + " para devolver el stock.");
         }
         
         InventarioBodega loteElegido = lotes.get(0);
         loteElegido.setCantidadDisponible(loteElegido.getCantidadDisponible() + cantDevuelta);
         inventarioRepository.save(loteElegido);
 
-        // Registrar Auditoría global
         AuditoriaStock auditoria = new AuditoriaStock();
         auditoria.setProductoId(pId);
         auditoria.setBodegaId(loteElegido.getBodegaId());
         auditoria.setTipoMovimiento(AuditoriaStock.TipoMovimiento.INGRESO);
         auditoria.setCantidadAfectada(cantDevuelta);
         auditoria.setFechaMovimiento(LocalDateTime.now());
-        auditoria.setMotivoReferencia("Reversión/Devolución de orden " + request.getOrdenId());
+        auditoria.setMotivoReferencia("Reversion/Devolucion de orden " + request.getOrdenId());
         auditoriaStockRepository.save(auditoria);
 
         sincronizarCatalogo(pId);
@@ -139,9 +203,12 @@ public class InventarioService {
     private void sincronizarCatalogo(Long productoId) {
         try {
             Integer subtotal = inventarioRepository.sumStockByProductoId(productoId);
-            tienda.api.inventario.event.StockActualizadoEvent event = new tienda.api.inventario.event.StockActualizadoEvent(productoId, subtotal == null ? 0 : subtotal);
+            Map<String, Object> event = Map.of(
+                "productoId", productoId,
+                "stock", subtotal == null ? 0 : subtotal
+            );
             rabbitTemplate.convertAndSend(tienda.api.inventario.config.RabbitMQConfig.EXCHANGE, tienda.api.inventario.config.RabbitMQConfig.ROUTING_KEY_STOCK, event);
-            System.out.println("Evento StockActualizadoEvent publicado para producto: " + productoId);
+            System.out.println("Evento StockActualizadoEvent publicado (MAP) para producto: " + productoId);
         } catch (Exception e) {
             System.err.println("Visibilidad de Catalogo Fallida (RabbitMQ): " + e.getMessage());
         }
@@ -152,8 +219,6 @@ public class InventarioService {
         if(!activo) {
             List<InventarioBodega> lotes = inventarioRepository.findByProductoId(productoId);
             for(InventarioBodega lote : lotes) {
-                // Congelamos el stock moviéndolo a cantidad reservada (o simplemente reduciendo la disponible a 0)
-                // Para mantener la consistencia física, lo mejor es ponerlo a 0 disponible.
                 if(lote.getCantidadDisponible() > 0) {
                     lote.setCantidadReservada(lote.getCantidadReservada() + lote.getCantidadDisponible());
                     lote.setCantidadDisponible(0);

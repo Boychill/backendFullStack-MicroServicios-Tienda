@@ -1,180 +1,53 @@
 # Referencia de la API (Microservicios Tienda)
 
-Esta es la documentación de los endpoints disponibles en el sistema de microservicios, basada en las colecciones de Bruno.
-
-Todas las rutas están prefijadas por el API Gateway (ejemplo: `http://localhost:8080`). Las rutas protegidas requieren de un token JWT (`Bearer Token`) en los headers de la petición.
+Esta es la documentación de los endpoints disponibles en el ecosistema, basándonos en la Colección de Bruno del proyecto. Todas las rutas están prefijadas por el API Gateway (`http://localhost:8080`).
 
 ---
 
-## 1. Autenticación (Auth)
-
-### 1.1 Iniciar Sesión (Login)
-- **Método:** `POST`
-- **Ruta:** `/api/auth/login`
-- **Autenticación:** Ninguna
-- **Cuerpo (JSON):**
-  ```json
-  {
-    "email": "admin@tienda.com",
-    "password": "123456"
-  }
-  ```
-
-### 1.2 Registrar Usuario (Register)
-- **Método:** `POST`
-- **Ruta:** `/api/auth/register`
-- **Autenticación:** Ninguna
-- **Cuerpo (JSON):**
-  ```json
-  {
-    "email": "nuevo_usuario@tienda.com",
-    "password": "password123",
-    "role": "ROLE_USER",
-    "latitud": -34.6037,
-    "longitud": -58.3816,
-    "direccionFiscal": "Av Siempreviva 742"
-  }
-  ```
-
----
+## 1. Auth & Perfiles
+- `POST /api/auth/login` (Público): Autenticación y generación de JWT Bearer.
+- `POST /api/auth/register` (Público): Registro de un nuevo usuario encriptando la clave.
+- `GET /api/perfiles/direcciones`: Retorna el listado de direcciones postales de entrega del usuario autenticado.
+- `POST /api/perfiles/direccion`: Agrega una nueva dirección a la libreta del usuario.
+- `PUT /api/perfiles/direcciones/{id}`: Modifica una dirección existente.
+- `DELETE /api/perfiles/direcciones/{id}`: Elimina una dirección.
 
 ## 2. Catálogo
-
-### 2.1 Listar Productos
-- **Método:** `GET`
-- **Ruta:** `/api/productos`
-- **Autenticación:** Ninguna
-
-### 2.2 Crear Producto
-- **Método:** `POST`
-- **Ruta:** `/api/productos`
-- **Autenticación:** Requerida (Bearer Token)
-- **Cuerpo (JSON):**
-  ```json
-  {
-    "nombre": "Laptop Pro",
-    "precio": 1500.00,
-    "categoria": "COMPUTACION"
-  }
-  ```
-
-### 2.3 Cambiar Estado de Producto
-- **Método:** `PUT`
-- **Ruta:** `/api/productos/{id}/estado?activo=false`
-- **Autenticación:** Requerida (Bearer Token)
-
----
+- `GET /api/productos` (Público): Lista los productos y sus precios.
+- `POST /api/productos`: Crea un producto nuevo (Ruta protegida, requiere Administrador).
+- `PUT /api/productos/{id}/estado`: Activa o desactiva un producto de la vista pública.
 
 ## 3. Inventario
-
-### 3.1 Crear Bodega
-- **Método:** `POST`
-- **Ruta:** `/api/inventario/bodegas`
-- **Autenticación:** Requerida (Bearer Token)
-- **Cuerpo (JSON):**
-  ```json
-  {
-    "nombre": "Bodega Central",
-    "ubicacionGeografica": "Centro Industrial"
-  }
-  ```
-
-### 3.2 Ingreso de Stock
-- **Método:** `POST`
-- **Ruta:** `/api/inventario/ingreso`
-- **Autenticación:** Requerida (Bearer Token)
-- **Cuerpo (JSON):**
-  ```json
-  {
-    "bodegaId": 1,
-    "productoId": 1,
-    "cantidadFisica": 50
-  }
-  ```
-
-### 3.3 Auditoría de Stock
-- **Método:** `GET`
-- **Ruta:** `/api/inventario/auditoria/{productoId}`
-- **Autenticación:** Requerida (Bearer Token)
-
----
+- `POST /api/inventario/bodegas`: Crea una nueva bodega física en el sistema.
+- `POST /api/inventario/ingreso`: Añade unidades físicas (stock) a un producto dentro de una bodega específica, sincronizando al instante la visibilidad en el Catálogo.
+- `GET /api/inventario/auditoria/{productoId}`: Revisa exactamente cuántas unidades hay distribuidas por cada bodega de un producto dado.
 
 ## 4. Carrito
+- `GET /api/carrito`: Ve los items actuales en tu sesión.
+- `POST /api/carrito/items`: Añade un producto a tu carrito.
+- `PUT /api/carrito/items/{id}/reducir`: Reduce la cantidad de un ítem.
+- `DELETE /api/carrito/items/{id}`: Saca el ítem del carrito.
+- `DELETE /api/carrito/vaciar`: Elimina todo (Esto también lo llama automáticamente `Pedidos` tras un cobro exitoso).
 
-### 4.1 Ver Carrito
-- **Método:** `GET`
-- **Ruta:** `/api/carrito`
-- **Autenticación:** Requerida (Bearer Token)
+## 5. Pedidos (Orquestador SAGA)
+- `POST /api/pedidos/checkout`: Ejecuta el flujo transaccional. Revisa stock en Inventario, cobra en Pagos y limpia el Carrito. Devuelve el número de orden generado.
+- `GET /api/pedidos/mis-pedidos`: Retorna el historial de compras completo del usuario logueado. Es la fuente de la verdad para ver el estado dinámico (Pagado, En Ruta, Entregado, etc.).
+- `POST /api/pedidos/{id}/devolucion`: Inicia el flujo inverso manual para devolver el dinero y el stock a las bodegas.
 
-### 4.2 Agregar Ítem al Carrito
-- **Método:** `POST`
-- **Ruta:** `/api/carrito/items`
-- **Autenticación:** Requerida (Bearer Token)
-- **Cuerpo (JSON):**
-  ```json
-  {
-    "productoId": 1,
-    "cantidad": 2
-  }
-  ```
+## 6. Logística
+- `GET /api/logistica/admin/rutas`: Panel de administrador para ver todas las rutas generadas.
+- `GET /api/logistica/chofer/mis-rutas`: Panel del chofer para ver qué pedidos le toca entregar hoy (Filtrado por token de Rol Chofer).
+- `PUT /api/logistica/admin/rutas/{id}/reasignar`: Permite que un admin cambie al chofer encargado del envío.
+- `PUT /api/logistica/admin/rutas/{id}/cancelar`: El admin cancela la ruta antes de iniciar el viaje.
+- `PUT /api/logistica/chofer/rutas/{id}/estado`: El chofer reporta el estado final del paquete (`ENTREGADO`, `NO_RESPUESTA`). Esta llamada activa el RabbitMQ que actualiza todo el sistema automáticamente.
 
-### 4.3 Reducir Ítem
-- **Método:** `PUT`
-- **Ruta:** `/api/carrito/items/{id}/reducir?cantidad=1`
-- **Autenticación:** Requerida (Bearer Token)
+## 7. Reportes (Analytics)
+- `GET /api/reportes/ventas`: Agrega los datos de todo el ecosistema (Pedidos y Auth) al vuelo, para indicarle a los directivos los ingresos netos de la empresa y **calcula mediante algoritmos cuál es el ID del Producto Más Vendido en el histórico**.
 
-### 4.4 Eliminar Ítem
-- **Método:** `DELETE`
-- **Ruta:** `/api/carrito/items/{id}`
-- **Autenticación:** Requerida (Bearer Token)
+## 8. Notificaciones
+- `GET /api/notificaciones`: Muestra las alertas recibidas por el usuario logueado en su campanita.
+- `PUT /api/notificaciones/{id}/leer`: Marca una notificación como vista.
 
-### 4.5 Vaciar Carrito
-- **Método:** `DELETE`
-- **Ruta:** `/api/carrito/vaciar`
-- **Autenticación:** Requerida (Bearer Token)
-
----
-
-## 5. Pedidos
-
-### 5.1 Checkout Total
-- **Método:** `POST`
-- **Ruta:** `/api/pedidos/checkout`
-- **Autenticación:** Requerida (Bearer Token)
-- **Cuerpo (JSON):**
-  ```json
-  {
-    "numeroTarjeta": "4555888899990000"
-  }
-  ```
-
-### 5.2 Checkout Parcial
-- **Método:** `POST`
-- **Ruta:** `/api/pedidos/checkout`
-- **Autenticación:** Requerida (Bearer Token)
-- **Cuerpo (JSON):**
-  ```json
-  {
-    "numeroTarjeta": "4555888899990000",
-    "productosSeleccionados": [
-      {
-        "productoId": 1,
-        "cantidad": 1
-      }
-    ]
-  }
-  ```
-
-### 5.3 Devolución
-- **Método:** `POST`
-- **Ruta:** `/api/pedidos/{id}/devolucion`
-- **Autenticación:** Requerida (Bearer Token)
-- **Cuerpo (JSON):**
-  ```json
-  [
-    {
-      "productoId": 1,
-      "cantidad": 1
-    }
-  ]
-  ```
+## 9. Pagos
+- `POST /api/pagos/procesar`: Endpoint fantasma que simula el cobro a la tarjeta.
+- `POST /api/pagos/reembolso/{id}`: El administrador fuerza una devolución de la tarjeta del cliente. Este endpoint le avisa por RabbitMQ a `Pedidos` que marque la orden como `REEMBOLSADO` de forma automatizada.
