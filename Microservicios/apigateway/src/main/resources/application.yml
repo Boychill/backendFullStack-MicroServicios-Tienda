@@ -3,9 +3,35 @@ server:
 spring:
   application:
     name: apigateway
+server:
+  port: 8080
+spring:
+  application:
+    name: apigateway
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 jwt:
   secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+springdoc:
+  swagger-ui:
+    urls:
+      - name: Catálogo
+        url: /api/productos/v3/api-docs
+      - name: Inventario
+        url: /api/inventario/v3/api-docs
+      - name: Pedidos
+        url: /api/pedidos/v3/api-docs
+      - name: Pagos
+        url: /api/pagos/v3/api-docs
+      - name: Carrito
+        url: /api/carrito/v3/api-docs
+      - name: Auth (Usuarios)
+        url: /auth/v3/api-docs
+      - name: Logistica
+        url: /api/logistica/v3/api-docs
+      - name: Notificaciones
+        url: /api/notificaciones/v3/api-docs
+      - name: Reportes
+        url: /api/reportes/v3/api-docs
