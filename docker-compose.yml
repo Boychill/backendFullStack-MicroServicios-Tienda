@@ -1,29 +1,255 @@
 version: '3.8'
 
+networks:
+  tienda-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  rabbitmq_data:
+
 services:
-  rabbitmq:
+  # -------------------------
+  # INFRAESTRUCTURA
+  # -------------------------
+  tienda-rabbitmq:
     image: rabbitmq:3.12-management
     container_name: tienda-rabbitmq
     ports:
-      - "5672:5672"   # Puerto de comunicación AMQP
-      - "15672:15672" # Interfaz gráfica Management
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
+    networks:
+      - tienda-network
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  mysql:
+  tienda-mysql:
     image: mysql:8.0
     container_name: tienda-mysql
     ports:
       - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: "123"
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - tienda-network
     volumes:
       - mysql_data:/var/lib/mysql
-    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-volumes:
-  rabbitmq_data:
-  mysql_data:
+  # -------------------------
+  # ORQUESTACION
+  # -------------------------
+  eureka:
+    build:
+      context: ./Microservicios/eureka
+      dockerfile: ../../Dockerfile
+    container_name: tienda-eureka
+    ports:
+      - "8761:8761"
+    networks:
+      - tienda-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  apigateway:
+    build:
+      context: ./Microservicios/apigateway
+      dockerfile: ../../Dockerfile
+    container_name: tienda-apigateway
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+    networks:
+      - tienda-network
+    depends_on:
+      eureka:
+        condition: service_started
+
+  # -------------------------
+  # MICROSERVICIOS DE NEGOCIO
+  # -------------------------
+  auth:
+    build:
+      context: ./Microservicios/auth
+      dockerfile: ../../Dockerfile
+    container_name: tienda-auth
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://tienda-mysql:3306/tienda_auth?createDatabaseIfNotExist=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+    networks:
+      - tienda-network
+    depends_on:
+      tienda-mysql:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+
+  catalogo:
+    build:
+      context: ./Microservicios/catalogo
+      dockerfile: ../../Dockerfile
+    container_name: tienda-catalogo
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://tienda-mysql:3306/tienda_catalogo?createDatabaseIfNotExist=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+    networks:
+      - tienda-network
+    depends_on:
+      tienda-mysql:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+
+  inventario:
+    build:
+      context: ./Microservicios/inventario
+      dockerfile: ../../Dockerfile
+    container_name: tienda-inventario
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://tienda-mysql:3306/tienda_inventario?createDatabaseIfNotExist=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+    networks:
+      - tienda-network
+    depends_on:
+      tienda-mysql:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+
+  pedidos:
+    build:
+      context: ./Microservicios/pedidos
+      dockerfile: ../../Dockerfile
+    container_name: tienda-pedidos
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://tienda-mysql:3306/tienda_pedidos?createDatabaseIfNotExist=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+    networks:
+      - tienda-network
+    depends_on:
+      tienda-mysql:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+
+  pagos:
+    build:
+      context: ./Microservicios/pagos
+      dockerfile: ../../Dockerfile
+    container_name: tienda-pagos
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://tienda-mysql:3306/tienda_pagos?createDatabaseIfNotExist=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+      - SPRING_RABBITMQ_HOST=tienda-rabbitmq
+    networks:
+      - tienda-network
+    depends_on:
+      tienda-mysql:
+        condition: service_healthy
+      tienda-rabbitmq:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+
+  carrito:
+    build:
+      context: ./Microservicios/carrito
+      dockerfile: ../../Dockerfile
+    container_name: tienda-carrito
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://tienda-mysql:3306/tienda_carrito?createDatabaseIfNotExist=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+    networks:
+      - tienda-network
+    depends_on:
+      tienda-mysql:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+
+  logistica:
+    build:
+      context: ./Microservicios/logistica
+      dockerfile: ../../Dockerfile
+    container_name: tienda-logistica
+    ports:
+      - "8087:8087"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://tienda-mysql:3306/tienda_logistica?createDatabaseIfNotExist=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+      - SPRING_RABBITMQ_HOST=tienda-rabbitmq
+    networks:
+      - tienda-network
+    depends_on:
+      tienda-mysql:
+        condition: service_healthy
+      tienda-rabbitmq:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+
+  reportes:
+    build:
+      context: ./Microservicios/reportes
+      dockerfile: ../../Dockerfile
+    container_name: tienda-reportes
+    ports:
+      - "8089:8089"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+    networks:
+      - tienda-network
+    depends_on:
+      eureka:
+        condition: service_started
+
+  notificaciones:
+    build:
+      context: ./Microservicios/notificaciones
+      dockerfile: ../../Dockerfile
+    container_name: tienda-notificaciones
+    ports:
+      - "8090:8090"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://tienda-mysql:3306/tienda_notificaciones?createDatabaseIfNotExist=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+      - SPRING_RABBITMQ_HOST=tienda-rabbitmq
+    networks:
+      - tienda-network
+    depends_on:
+      tienda-mysql:
+        condition: service_healthy
+      tienda-rabbitmq:
+        condition: service_healthy
+      eureka:
+        condition: service_started

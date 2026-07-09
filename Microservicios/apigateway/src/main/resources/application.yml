@@ -3,11 +3,7 @@ server:
 spring:
   application:
     name: apigateway
-server:
-  port: 8080
-spring:
-  application:
-    name: apigateway
+
 eureka:
   client:
     service-url:
