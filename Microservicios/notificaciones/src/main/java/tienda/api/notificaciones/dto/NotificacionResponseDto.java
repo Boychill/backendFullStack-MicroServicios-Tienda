@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.springframework.hateoas.RepresentationModel;
+
 
 import java.time.LocalDateTime;
 
@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class NotificacionResponseDto extends RepresentationModel<NotificacionResponseDto> {
+
+public class NotificacionResponseDto  {
     private Long id;
     private Long receptorId;
     private String rolReceptor;
@@ -22,4 +22,12 @@ public class NotificacionResponseDto extends RepresentationModel<NotificacionRes
     private String mensaje;
     private Boolean leida;
     private LocalDateTime fechaCreacion;
+    @lombok.Builder.Default
+    @com.fasterxml.jackson.annotation.JsonProperty("_links") private java.util.Map<String, Object> _links = new java.util.HashMap<>();
+
+    public void add(org.springframework.hateoas.Link link) {
+        if (this._links == null) this._links = new java.util.HashMap<>();
+        this._links.put(link.getRel().value(), link);
+    }
 }
+

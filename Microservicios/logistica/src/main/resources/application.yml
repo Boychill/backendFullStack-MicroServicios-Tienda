@@ -1,6 +1,8 @@
 server:
   port: 8088
 spring:
+  autoconfigure:
+    exclude: org.springdoc.core.configuration.SpringDocHateoasConfiguration
   application:
     name: logistica
   datasource:
@@ -27,3 +29,4 @@ springdoc:
   api-docs:
     path: /api/logistica/v3/api-docs
   show-hateoas: false
+

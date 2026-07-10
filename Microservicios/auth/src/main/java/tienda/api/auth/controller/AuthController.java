@@ -51,7 +51,7 @@ public class AuthController {
     public ResponseEntity<?> login(@Valid @RequestBody AuthRequest request) {
         try {
             AuthResponse authResponse = authService.login(request);
-            authResponse.add(linkTo(methodOn(PerfilController.class).misDirecciones()).withRel("mis_direcciones"));
+            authResponse.addLink("mis_direcciones", linkTo(methodOn(PerfilController.class).misDirecciones()).withRel("mis_direcciones"));
             return ResponseEntity.ok(authResponse);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));

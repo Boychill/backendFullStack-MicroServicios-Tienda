@@ -1,6 +1,8 @@
 server:
   port: 8084
 spring:
+  autoconfigure:
+    exclude: org.springdoc.core.configuration.SpringDocHateoasConfiguration
   application:
     name: CARRITO
   datasource:
@@ -27,3 +29,4 @@ springdoc:
   api-docs:
     path: /api/carrito/v3/api-docs
   show-hateoas: false
+

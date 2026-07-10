@@ -1,6 +1,8 @@
 server:
   port: 8090
 spring:
+  autoconfigure:
+    exclude: org.springdoc.core.configuration.SpringDocHateoasConfiguration
   application:
     name: NOTIFICACIONES
   datasource:
@@ -27,3 +29,4 @@ springdoc:
   api-docs:
     path: /api/notificaciones/v3/api-docs
   show-hateoas: false
+

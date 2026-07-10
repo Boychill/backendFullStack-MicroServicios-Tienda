@@ -53,7 +53,7 @@ class AnalyticsControllerTest {
         VentasAnalyticsDto responseDto = (VentasAnalyticsDto) response.getBody();
         assertEquals(150, responseDto.getTotalPedidos());
         assertEquals(new BigDecimal("50000.00"), responseDto.getIngresoNeto());
-        assertTrue(responseDto.hasLink("self"));
+        assertTrue(responseDto.get_links().containsKey("self"));
     }
 
     @Test

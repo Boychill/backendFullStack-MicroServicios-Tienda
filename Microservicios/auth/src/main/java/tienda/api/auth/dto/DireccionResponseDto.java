@@ -3,16 +3,15 @@ package tienda.api.auth.dto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.springframework.hateoas.RepresentationModel;
+import java.util.HashMap;
+import java.util.Map;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class DireccionResponseDto extends RepresentationModel<DireccionResponseDto> {
+public class DireccionResponseDto {
     private Long id;
     private Long usuarioId;
     private String alias;
@@ -20,4 +19,12 @@ public class DireccionResponseDto extends RepresentationModel<DireccionResponseD
     private Double latitud;
     private Double longitud;
     private Boolean esPrincipal;
+    @Builder.Default
+    @com.fasterxml.jackson.annotation.JsonProperty("_links")
+    private Map<String, Object> _links = new HashMap<>();
+
+    public void addLink(String rel, Object link) {
+        if (this._links == null) this._links = new HashMap<>();
+        this._links.put(rel, link);
+    }
 }

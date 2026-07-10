@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.springframework.hateoas.RepresentationModel;
+
 
 import java.time.LocalDateTime;
 
@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class GuiaDespachoResponseDto extends RepresentationModel<GuiaDespachoResponseDto> {
+
+public class GuiaDespachoResponseDto  {
     private Long id;
     private Long pedidoId;
     private String direccionCompleta;
@@ -22,4 +22,12 @@ public class GuiaDespachoResponseDto extends RepresentationModel<GuiaDespachoRes
     private String estado;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
+    @lombok.Builder.Default
+    @com.fasterxml.jackson.annotation.JsonProperty("_links") private java.util.Map<String, Object> _links = new java.util.HashMap<>();
+
+    public void add(org.springframework.hateoas.Link link) {
+        if (this._links == null) this._links = new java.util.HashMap<>();
+        this._links.put(link.getRel().value(), link);
+    }
 }
+

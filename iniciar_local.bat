@@ -27,12 +27,12 @@ echo [3/4] Lanzando Servicios Principales (Eureka y API Gateway) localmente...
 echo.
 
 echo Iniciando: Eureka Server
-start "eureka" cmd /k "cd /d "%BASE_DIR%\eureka" && color 0B && title Microservicio - Eureka && mvn spring-boot:run"
+start "Servicio: eureka" cmd /c "cd /d "%BASE_DIR%\eureka" && color 0B && title Microservicio - Eureka && mvn spring-boot:run"
 echo Esperando 20 segundos para que Eureka Server este 100%% operativo...
 timeout /t 20 /nobreak > nul
 
 echo Iniciando: API Gateway
-start "apigateway" cmd /k "cd /d "%BASE_DIR%\apigateway" && color 0D && title Microservicio - API Gateway && mvn spring-boot:run"
+start "Servicio: apigateway" cmd /c "cd /d "%BASE_DIR%\apigateway" && color 0D && title Microservicio - API Gateway && mvn spring-boot:run"
 echo Esperando 15 segundos para que API Gateway se registre en Eureka...
 timeout /t 15 /nobreak > nul
 
@@ -43,8 +43,8 @@ set "MICROSERVICIOS=auth carrito catalogo inventario logistica notificaciones pa
 for %%m in (%MICROSERVICIOS%) do (
     if exist "%BASE_DIR%\%%m\pom.xml" (
         echo Iniciando: %%m
-        REM Inicia una nueva ventana de consola para cada microservicio usando cmd /k para mantenerla abierta
-        start "%%m" cmd /k "cd /d "%BASE_DIR%\%%m" && color 0A && title Microservicio - %%m && mvn spring-boot:run"
+        REM Inicia una nueva ventana de consola para cada microservicio
+        start "Servicio: %%m" cmd /c "cd /d "%BASE_DIR%\%%m" && color 0A && title Microservicio - %%m && mvn spring-boot:run"
         REM Espera 5 segundos entre cada lanzamiento para no saturar el procesador
         timeout /t 5 /nobreak > nul
     ) else (

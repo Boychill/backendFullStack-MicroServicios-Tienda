@@ -72,8 +72,8 @@ class NotificacionControllerTest {
         assertEquals(2, response.getBody().size());
         
         // Unread notification should have HATEOAS link, read notification should not.
-        assertTrue(response.getBody().get(0).hasLink("marcar_leida"));
-        assertFalse(response.getBody().get(1).hasLink("marcar_leida"));
+        assertTrue(response.getBody().get(0).get_links().containsKey("marcar_leida"));
+        assertFalse(response.getBody().get(1).get_links().containsKey("marcar_leida"));
     }
 
     @Test

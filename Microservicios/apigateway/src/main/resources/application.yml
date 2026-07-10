@@ -1,6 +1,8 @@
 server:
   port: 8080
 spring:
+  autoconfigure:
+    exclude: org.springdoc.core.configuration.SpringDocHateoasConfiguration
   application:
     name: apigateway
 
@@ -31,3 +33,4 @@ springdoc:
         url: /api/notificaciones/v3/api-docs
       - name: Reportes
         url: /api/reportes/v3/api-docs
+

@@ -1,6 +1,7 @@
 # Mapa de Puertos de Microservicios
 
 Este documento contiene la lista de puertos en los que corre cada microservicio del ecosistema de la Tienda.
+Para acceder a la documentación interactiva (Swagger) y paneles de control (Eureka/RabbitMQ), por favor revisa [Rutas_Acceso_Herramientas.md](Rutas_Acceso_Herramientas.md).
 
 | Microservicio    | Puerto | Propósito Principal |
 |------------------|--------|---------------------|

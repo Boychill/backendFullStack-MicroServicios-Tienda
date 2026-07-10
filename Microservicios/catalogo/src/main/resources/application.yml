@@ -1,6 +1,8 @@
 server:
   port: 8082
 spring:
+  autoconfigure:
+    exclude: org.springdoc.core.configuration.SpringDocHateoasConfiguration
   application:
     name: catalogo
   datasource:
@@ -26,3 +28,4 @@ jwt:
 springdoc:
   api-docs:
     path: /api/productos/v3/api-docs
+

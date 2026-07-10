@@ -1,6 +1,8 @@
 server:
   port: 8086
 spring:
+  autoconfigure:
+    exclude: org.springdoc.core.configuration.SpringDocHateoasConfiguration
   application:
     name: PEDIDOS
   datasource:
@@ -27,3 +29,4 @@ springdoc:
   api-docs:
     path: /api/pedidos/v3/api-docs
   show-hateoas: false
+

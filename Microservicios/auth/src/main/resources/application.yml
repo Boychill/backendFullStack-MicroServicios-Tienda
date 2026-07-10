@@ -1,6 +1,8 @@
 server:
   port: 8081
 spring:
+  autoconfigure:
+    exclude: org.springdoc.core.configuration.SpringDocHateoasConfiguration
   application:
     name: auth
   datasource:
@@ -22,3 +24,4 @@ springdoc:
   api-docs:
     path: /auth/v3/api-docs
   show-hateoas: false
+

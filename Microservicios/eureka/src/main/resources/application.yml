@@ -1,6 +1,12 @@
 server:
   port: 8761
 spring:
+  autoconfigure:
+    exclude: org.springdoc.core.configuration.SpringDocHateoasConfiguration
+  cloud:
+    service-registry:
+      auto-registration:
+        enabled: false
   application:
     name: eureka-server
 eureka:

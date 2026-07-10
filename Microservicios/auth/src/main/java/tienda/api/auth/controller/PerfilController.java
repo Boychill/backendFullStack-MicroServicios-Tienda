@@ -41,8 +41,8 @@ public class PerfilController {
             .esPrincipal(direccion.getEsPrincipal())
             .build();
             
-        dto.add(linkTo(methodOn(PerfilController.class).obtenerDireccion(direccion.getId())).withSelfRel());
-        dto.add(linkTo(methodOn(PerfilController.class).misDirecciones()).withRel("todas_mis_direcciones"));
+        dto.addLink("self", linkTo(methodOn(PerfilController.class).obtenerDireccion(direccion.getId())).withSelfRel());
+        dto.addLink("todas_mis_direcciones", linkTo(methodOn(PerfilController.class).misDirecciones()).withRel("todas_mis_direcciones"));
         return dto;
     }
 

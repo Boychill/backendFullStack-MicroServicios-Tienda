@@ -18,7 +18,7 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
             .addFilterBefore(roleFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/error").permitAll()
+                .requestMatchers("/error", "/swagger-ui/**", "/v3/api-docs/**", "/api/*/v3/api-docs/**", "/swagger-ui.html", "/webjars/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/inventario/descuento").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_BODEGUERO")
                 .anyRequest().hasAnyAuthority("ROLE_BODEGUERO", "ROLE_ADMIN")
             );

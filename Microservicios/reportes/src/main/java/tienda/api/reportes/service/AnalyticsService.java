@@ -63,6 +63,6 @@ public class AnalyticsService {
             System.err.println("Error calculando el producto mas vendido: " + e.getMessage());
         }
                 
-        return new VentasAnalyticsDto(totalPedidos, ingresoNeto, ventasPorFecha, productoMasVendidoId, totalUsuarios);
+        return new VentasAnalyticsDto(totalPedidos, ingresoNeto, ventasPorFecha, productoMasVendidoId, totalUsuarios, new java.util.HashMap<>());
     }
 }
